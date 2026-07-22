@@ -63,6 +63,26 @@ public class RefreshToken {
     protected RefreshToken() {
     }
 
+    public static RefreshToken issue(
+            User user,
+            UUID familyId,
+            String tokenHash,
+            OffsetDateTime createdAt,
+            OffsetDateTime expiresAt,
+            String userAgent,
+            InetAddress ipAddress) {
+        RefreshToken token = new RefreshToken();
+        token.id = UUID.randomUUID();
+        token.user = user;
+        token.familyId = familyId;
+        token.tokenHash = tokenHash;
+        token.createdAt = createdAt;
+        token.expiresAt = expiresAt;
+        token.userAgent = userAgent;
+        token.ipAddress = ipAddress;
+        return token;
+    }
+
     public UUID getId() {
         return id;
     }

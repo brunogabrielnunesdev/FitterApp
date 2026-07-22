@@ -72,6 +72,11 @@ public class User {
         updatedAt = confirmedAt;
     }
 
+    public void block(OffsetDateTime blockedAt) {
+        status = UserStatus.BLOCKED;
+        updatedAt = blockedAt;
+    }
+
     public UUID getId() {
         return id;
     }
