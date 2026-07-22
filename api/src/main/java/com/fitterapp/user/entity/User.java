@@ -48,6 +48,24 @@ public class User {
     protected User() {
     }
 
+    public static User pendingRegistration(
+            String fullName,
+            String email,
+            String phoneNumber,
+            String passwordHash,
+            OffsetDateTime createdAt) {
+        User user = new User();
+        user.id = UUID.randomUUID();
+        user.fullName = fullName;
+        user.email = email;
+        user.phoneNumber = phoneNumber;
+        user.passwordHash = passwordHash;
+        user.status = UserStatus.PENDING_VERIFICATION;
+        user.createdAt = createdAt;
+        user.updatedAt = createdAt;
+        return user;
+    }
+
     public UUID getId() {
         return id;
     }

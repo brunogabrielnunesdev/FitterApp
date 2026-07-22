@@ -38,6 +38,15 @@ public class UserRole {
     protected UserRole() {
     }
 
+    public static UserRole grantedBySystem(User user, Role role, OffsetDateTime grantedAt) {
+        UserRole userRole = new UserRole();
+        userRole.id = new UserRoleId(user.getId(), role.getId());
+        userRole.user = user;
+        userRole.role = role;
+        userRole.grantedAt = grantedAt;
+        return userRole;
+    }
+
     public UserRoleId getId() {
         return id;
     }

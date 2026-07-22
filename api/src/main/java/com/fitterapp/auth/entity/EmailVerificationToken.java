@@ -45,6 +45,20 @@ public class EmailVerificationToken {
     protected EmailVerificationToken() {
     }
 
+    public static EmailVerificationToken issue(
+            User user,
+            String tokenHash,
+            OffsetDateTime createdAt,
+            OffsetDateTime expiresAt) {
+        EmailVerificationToken token = new EmailVerificationToken();
+        token.id = UUID.randomUUID();
+        token.user = user;
+        token.tokenHash = tokenHash;
+        token.createdAt = createdAt;
+        token.expiresAt = expiresAt;
+        return token;
+    }
+
     public UUID getId() {
         return id;
     }

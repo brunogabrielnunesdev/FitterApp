@@ -21,6 +21,8 @@ import com.fitterapp.user.entity.User;
 import com.fitterapp.user.entity.UserRole;
 import com.fitterapp.user.entity.UserRoleId;
 import com.fitterapp.user.entity.UserStatus;
+import com.fitterapp.user.repository.RoleRepository;
+import com.fitterapp.user.repository.UserRepository;
 
 import jakarta.persistence.EntityManager;
 
@@ -39,6 +41,30 @@ class AuthenticationPersistenceTests {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Test
+    void findsNormalizedEmailAndSeededRoleThroughRepositories() {
+        UUID userId = insertUser("repository@fitterapp.com", "+5544999999900");
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(userRepository.existsByEmail("repository@fitterapp.com")).isTrue();
+        assertThat(userRepository.findByEmail("repository@fitterapp.com"))
+                .get()
+                .extracting(User::getId)
+                .isEqualTo(userId);
+        assertThat(roleRepository.findByName(RoleName.STUDENT))
+                .get()
+                .extracting(role -> role.getId())
+                .isEqualTo((short) 1);
+    }
 
     @Test
     void loadsUserRoleWithItsCompositeKeyAndRelationships() {
