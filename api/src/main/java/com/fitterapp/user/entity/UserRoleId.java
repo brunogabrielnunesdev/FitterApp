@@ -19,6 +19,11 @@ public class UserRoleId implements Serializable {
     protected UserRoleId() {
     }
 
+    public UserRoleId(UUID userId, Short roleId) {
+        this.userId = Objects.requireNonNull(userId);
+        this.roleId = Objects.requireNonNull(roleId);
+    }
+
     public UUID getUserId() {
         return userId;
     }
