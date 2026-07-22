@@ -54,7 +54,7 @@ export default function Home() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="FitterApp — início">
-          <Image src="/fitterapp-logo.png" alt="" width={36} height={36} priority />
+          <Image src="/fitterapp-logo.png" alt="" width={36} height={36} priority unoptimized />
           <span>FitterApp</span>
         </a>
 
@@ -83,6 +83,7 @@ export default function Home() {
             width={104}
             height={104}
             priority
+            unoptimized
           />
           <div className="eyebrow">
             <span className="eyebrow-dot" />
@@ -130,7 +131,7 @@ export default function Home() {
             <div className="phone-speaker" />
             <div className="phone-screen">
               <div className="app-topbar">
-                <Image src="/fitterapp-logo.png" alt="" width={25} height={25} />
+                <Image src="/fitterapp-logo.png" alt="" width={25} height={25} unoptimized />
                 <span>FitterApp</span>
                 <div className="profile-dot">BR</div>
               </div>
@@ -292,7 +293,7 @@ export default function Home() {
           <span className="region-point point-one" />
           <span className="region-point point-two" />
           <span className="region-point point-three" />
-          <Image src="/fitterapp-logo.png" alt="" width={130} height={130} />
+          <Image src="/fitterapp-logo.png" alt="" width={130} height={130} unoptimized />
         </div>
 
         <div className="regional-copy">
@@ -437,7 +438,7 @@ export default function Home() {
 
       <section className="final-cta">
         <div className="final-cta-glow" aria-hidden="true" />
-        <Image src="/fitterapp-logo.png" alt="" width={82} height={82} />
+        <Image src="/fitterapp-logo.png" alt="" width={82} height={82} unoptimized />
         <span className="section-kicker">O MOVIMENTO COMEÇA AGORA</span>
         <h2>Seu próximo treino pode começar aqui.</h2>
         <p>
@@ -453,7 +454,7 @@ export default function Home() {
       <footer>
         <div className="footer-brand">
           <a className="brand" href="#top">
-            <Image src="/fitterapp-logo.png" alt="" width={36} height={36} />
+            <Image src="/fitterapp-logo.png" alt="" width={36} height={36} unoptimized />
             <span>FitterApp</span>
           </a>
           <p>Performance, proximidade e tecnologia para conectar pessoas ao treino certo.</p>
