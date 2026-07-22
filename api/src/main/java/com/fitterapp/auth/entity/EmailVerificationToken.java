@@ -59,6 +59,18 @@ public class EmailVerificationToken {
         return token;
     }
 
+    public boolean isUsed() {
+        return usedAt != null;
+    }
+
+    public boolean isExpiredAt(OffsetDateTime timestamp) {
+        return !expiresAt.isAfter(timestamp);
+    }
+
+    public void markAsUsed(OffsetDateTime timestamp) {
+        usedAt = timestamp;
+    }
+
     public UUID getId() {
         return id;
     }

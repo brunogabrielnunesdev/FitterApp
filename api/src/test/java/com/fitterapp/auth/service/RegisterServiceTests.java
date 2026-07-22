@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fitterapp.auth.entity.EmailVerificationToken;
@@ -62,6 +63,9 @@ class RegisterServiceTests {
     private TokenHasher tokenHasher;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private Role studentRole;
 
     private RegisterService registerService;
@@ -77,6 +81,7 @@ class RegisterServiceTests {
                 passwordEncoder,
                 tokenGenerator,
                 tokenHasher,
+                eventPublisher,
                 clock);
     }
 
@@ -123,7 +128,10 @@ class RegisterServiceTests {
         assertThat(token.getUsedAt()).isNull();
 
         assertThat(result.userId()).isEqualTo(user.getId());
-        assertThat(result.verificationToken()).isEqualTo("raw-verification-token");
+        verify(eventPublisher).publishEvent(new VerificationEmailRequested(
+                "student@fitterapp.com",
+                "Bruno Gabriel",
+                "raw-verification-token"));
     }
 
     @Test
@@ -140,6 +148,7 @@ class RegisterServiceTests {
         verify(userRepository, never()).save(any());
         verify(userRoleRepository, never()).save(any());
         verify(verificationTokenRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
         verify(passwordEncoder, never()).encode(any());
     }
 
@@ -158,5 +167,6 @@ class RegisterServiceTests {
         verify(userRepository, never()).save(any());
         verify(userRoleRepository, never()).save(any());
         verify(verificationTokenRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

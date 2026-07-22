@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class RegisterService {
     private final PasswordEncoder passwordEncoder;
     private final TokenGenerator tokenGenerator;
     private final TokenHasher tokenHasher;
+    private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
     public RegisterService(
@@ -45,6 +47,7 @@ public class RegisterService {
             PasswordEncoder passwordEncoder,
             TokenGenerator tokenGenerator,
             TokenHasher tokenHasher,
+            ApplicationEventPublisher eventPublisher,
             Clock clock) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -53,6 +56,7 @@ public class RegisterService {
         this.passwordEncoder = passwordEncoder;
         this.tokenGenerator = tokenGenerator;
         this.tokenHasher = tokenHasher;
+        this.eventPublisher = eventPublisher;
         this.clock = clock;
     }
 
@@ -83,8 +87,12 @@ public class RegisterService {
                 now,
                 now.plus(VERIFICATION_TOKEN_DURATION));
         verificationTokenRepository.save(verificationToken);
+        eventPublisher.publishEvent(new VerificationEmailRequested(
+                user.getEmail(),
+                user.getFullName(),
+                rawVerificationToken));
 
-        return new RegistrationResult(user.getId(), rawVerificationToken);
+        return new RegistrationResult(user.getId());
     }
 
     private String normalizeEmail(String email) {

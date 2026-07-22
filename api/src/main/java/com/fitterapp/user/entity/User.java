@@ -66,6 +66,12 @@ public class User {
         return user;
     }
 
+    public void confirmEmail(OffsetDateTime confirmedAt) {
+        emailVerifiedAt = confirmedAt;
+        status = UserStatus.ACTIVE;
+        updatedAt = confirmedAt;
+    }
+
     public UUID getId() {
         return id;
     }
