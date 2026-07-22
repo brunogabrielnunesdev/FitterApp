@@ -230,6 +230,14 @@ select:focus-visible {
   max-width: 665px;
 }
 
+.hero-logo {
+  width: 104px;
+  height: 104px;
+  margin-bottom: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 26px rgba(199, 255, 61, 0.28));
+}
+
 .eyebrow,
 .section-kicker {
   display: inline-flex;
@@ -1355,6 +1363,12 @@ footer {
   .brand img {
     width: 31px;
     height: 31px;
+  }
+
+  .hero-logo {
+    width: 82px;
+    height: 82px;
+    margin-bottom: 18px;
   }
 
   .site-header .button {

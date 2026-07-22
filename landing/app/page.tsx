@@ -76,6 +76,14 @@ export default function Home() {
         <div className="hero-glow hero-glow-violet" aria-hidden="true" />
 
         <div className="hero-content">
+          <Image
+            className="hero-logo"
+            src="/fitterapp-logo.png"
+            alt="Logo FitterApp"
+            width={104}
+            height={104}
+            priority
+          />
           <div className="eyebrow">
             <span className="eyebrow-dot" />
             O marketplace fitness da sua região
