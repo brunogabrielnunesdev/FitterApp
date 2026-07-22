@@ -139,7 +139,7 @@ As regras de negócio e permissões ficam centralizadas na API. O painel e o apl
 - Maven Wrapper.
 - JUnit, Spring Security Test e Testcontainers.
 
-### Painel administrativo e landing page
+### Painel administrativo
 
 - React.
 - TypeScript.
@@ -149,6 +149,14 @@ As regras de negócio e permissões ficam centralizadas na API. O painel e o apl
 - React Hook Form.
 - Zod.
 - Axios.
+
+### Landing page
+
+- React.
+- TypeScript.
+- vinext + Vite.
+- Tailwind CSS.
+- Build compatível com Cloudflare Workers.
 
 ### Mobile
 
