@@ -72,7 +72,6 @@ public class RefreshToken {
             String userAgent,
             InetAddress ipAddress) {
         RefreshToken token = new RefreshToken();
-        token.id = UUID.randomUUID();
         token.user = user;
         token.familyId = familyId;
         token.tokenHash = tokenHash;

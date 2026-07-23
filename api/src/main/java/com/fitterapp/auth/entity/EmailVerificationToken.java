@@ -51,7 +51,6 @@ public class EmailVerificationToken {
             OffsetDateTime createdAt,
             OffsetDateTime expiresAt) {
         EmailVerificationToken token = new EmailVerificationToken();
-        token.id = UUID.randomUUID();
         token.user = user;
         token.tokenHash = tokenHash;
         token.createdAt = createdAt;

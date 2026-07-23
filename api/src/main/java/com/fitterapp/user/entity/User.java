@@ -55,7 +55,6 @@ public class User {
             String passwordHash,
             OffsetDateTime createdAt) {
         User user = new User();
-        user.id = UUID.randomUUID();
         user.fullName = fullName;
         user.email = email;
         user.phoneNumber = phoneNumber;

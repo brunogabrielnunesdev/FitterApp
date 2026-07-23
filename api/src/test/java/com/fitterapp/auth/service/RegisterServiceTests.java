@@ -11,6 +11,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fitterapp.auth.entity.EmailVerificationToken;
 import com.fitterapp.auth.exception.EmailAlreadyRegisteredException;
@@ -87,8 +89,15 @@ class RegisterServiceTests {
 
     @Test
     void registersPendingStudentAndIssuesVerificationToken() {
+        UUID generatedUserId = UUID.randomUUID();
         when(userRepository.existsByEmail("student@fitterapp.com")).thenReturn(false);
         when(roleRepository.findByName(RoleName.STUDENT)).thenReturn(Optional.of(studentRole));
+        when(studentRole.getId()).thenReturn((short) 1);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User savedUser = invocation.getArgument(0);
+            ReflectionTestUtils.setField(savedUser, "id", generatedUserId);
+            return savedUser;
+        });
         when(passwordEncoder.encode("StrongPassword123!")).thenReturn("encoded-password");
         when(tokenGenerator.generate()).thenReturn("raw-verification-token");
         when(tokenHasher.hash("raw-verification-token")).thenReturn("a".repeat(64));
@@ -127,7 +136,7 @@ class RegisterServiceTests {
         assertThat(token.getExpiresAt().toInstant()).isEqualTo(NOW.plusSeconds(86_400));
         assertThat(token.getUsedAt()).isNull();
 
-        assertThat(result.userId()).isEqualTo(user.getId());
+        assertThat(result.userId()).isEqualTo(generatedUserId);
         verify(eventPublisher).publishEvent(new VerificationEmailRequested(
                 "student@fitterapp.com",
                 "Bruno Gabriel",
