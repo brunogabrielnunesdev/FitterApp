@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
 import { useFonts } from 'expo-font';
-import { router } from 'expo-router';
+import { Href, router } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,12 +21,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
 import { FormField } from '@/common/components/input/FormField';
 import { colors } from '@/common/theme/colors';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import { login } from '@/features/auth/services/authService';
-import { saveSession } from '@/features/auth/services/sessionStorage';
 import { getLoginErrorMessage } from '@/features/auth/utils/getLoginErrorMessage';
 import { LoginForm, loginSchema } from '@/features/auth/validation/loginSchema';
 
 export function LoginScreen() {
+  const { startSession } = useAuth();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
@@ -45,7 +47,7 @@ export function LoginScreen() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (session) => {
-      await saveSession(session);
+      await startSession(session);
       router.replace('/home');
     },
   });
@@ -147,9 +149,11 @@ export function LoginScreen() {
             />
           </View>
 
-          <Text style={styles.footer}>
-            NOVO POR AQUI? <Text style={styles.footerAccent}>CADASTRO EM BREVE</Text>
-          </Text>
+          <Pressable onPress={() => router.push('/register' as Href)}>
+            <Text style={styles.footer}>
+              NOVO POR AQUI? <Text style={styles.footerAccent}>CRIAR CONTA</Text>
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

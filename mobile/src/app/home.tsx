@@ -1,16 +1,21 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
 import { colors } from '@/common/theme/colors';
-import { clearSession } from '@/features/auth/services/sessionStorage';
+import { useAuth } from '@/features/auth/context/AuthContext';
 
 export default function AuthenticatedHomeScreen() {
+  const { endSession, isLoading, session } = useAuth();
+
   async function handleLogout() {
-    await clearSession();
+    await endSession();
     router.replace('/');
   }
+
+  if (isLoading) return null;
+  if (!session) return <Redirect href="/" />;
 
   return (
     <SafeAreaView style={styles.safeArea}>

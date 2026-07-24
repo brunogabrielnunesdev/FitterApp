@@ -1,20 +1,35 @@
 import * as SecureStore from 'expo-secure-store';
 
-import { LoginResponse } from '@/features/auth/types/auth';
+import { LoginResponse, StoredSession } from '@/features/auth/types/auth';
 
-const ACCESS_TOKEN_KEY = 'fitterapp.accessToken';
-const REFRESH_TOKEN_KEY = 'fitterapp.refreshToken';
+const SESSION_KEY = 'fitterapp.session';
 
 export async function saveSession(session: LoginResponse) {
-  await Promise.all([
-    SecureStore.setItemAsync(ACCESS_TOKEN_KEY, session.accessToken),
-    SecureStore.setItemAsync(REFRESH_TOKEN_KEY, session.refreshToken),
-  ]);
+  const storedSession: StoredSession = {
+    ...session,
+    expiresAt: Date.now() + session.expiresInSeconds * 1000,
+  };
+  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(storedSession));
+  return storedSession;
+}
+
+export async function getSession(): Promise<StoredSession | null> {
+  const serializedSession = await SecureStore.getItemAsync(SESSION_KEY);
+  if (!serializedSession) return null;
+
+  try {
+    const session = JSON.parse(serializedSession) as StoredSession;
+    if (!session.accessToken || session.expiresAt <= Date.now()) {
+      await clearSession();
+      return null;
+    }
+    return session;
+  } catch {
+    await clearSession();
+    return null;
+  }
 }
 
 export async function clearSession() {
-  await Promise.all([
-    SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
-    SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
-  ]);
+  await SecureStore.deleteItemAsync(SESSION_KEY);
 }

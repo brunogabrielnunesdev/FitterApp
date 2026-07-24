@@ -10,8 +10,24 @@ export type LoginResponse = {
   expiresInSeconds: number;
 };
 
+export type RegisterRequest = {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+};
+
+export type RegisterResponse = {
+  userId: string;
+};
+
+export type StoredSession = LoginResponse & {
+  expiresAt: number;
+};
+
 export type ApiProblem = {
   status?: number;
   code?: string;
   detail?: string;
+  errors?: Record<string, string>;
 };
