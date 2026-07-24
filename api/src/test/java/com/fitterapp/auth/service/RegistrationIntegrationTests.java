@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fitterapp.auth.repository.EmailVerificationTokenRepository;
-import com.fitterapp.auth.service.RegisterCommand;
+import com.fitterapp.auth.service.register.RegisterCommand;
 import com.fitterapp.auth.service.RegisterService;
 import com.fitterapp.user.repository.UserRepository;
 

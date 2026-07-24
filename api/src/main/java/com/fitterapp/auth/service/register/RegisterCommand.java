@@ -1,4 +1,4 @@
-package com.fitterapp.auth.service;
+package com.fitterapp.auth.service.register;
 
 public record RegisterCommand(
         String fullName,

@@ -1,5 +1,8 @@
 package com.fitterapp.auth.service;
 
+import com.fitterapp.auth.service.register.RegisterCommand;
+import com.fitterapp.auth.service.register.RegisterResult;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,7 +105,7 @@ class RegisterServiceTests {
         when(tokenGenerator.generate()).thenReturn("raw-verification-token");
         when(tokenHasher.hash("raw-verification-token")).thenReturn("a".repeat(64));
 
-        RegistrationResult result = registerService.register(new RegisterCommand(
+        RegisterResult result = registerService.register(new RegisterCommand(
                 "  Bruno   Gabriel  ",
                 "  STUDENT@FITTERAPP.COM ",
                 "+5544999999999",

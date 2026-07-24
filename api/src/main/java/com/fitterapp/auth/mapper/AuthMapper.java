@@ -4,33 +4,33 @@ import java.net.InetAddress;
 
 import org.springframework.stereotype.Component;
 
-import com.fitterapp.auth.dto.LoginRequest;
-import com.fitterapp.auth.dto.LoginResponse;
-import com.fitterapp.auth.dto.RegisterRequest;
-import com.fitterapp.auth.dto.RegisterResponse;
-import com.fitterapp.auth.service.LoginCommand;
-import com.fitterapp.auth.service.LoginResult;
-import com.fitterapp.auth.service.RegisterCommand;
-import com.fitterapp.auth.service.RegistrationResult;
+import com.fitterapp.auth.dto.login.LoginRequestDto;
+import com.fitterapp.auth.dto.login.LoginResponseDto;
+import com.fitterapp.auth.dto.register.RegisterRequestDto;
+import com.fitterapp.auth.dto.register.RegisterResponseDto;
+import com.fitterapp.auth.service.login.LoginCommand;
+import com.fitterapp.auth.service.login.LoginResult;
+import com.fitterapp.auth.service.register.RegisterCommand;
+import com.fitterapp.auth.service.register.RegisterResult;
 
 @Component
 public class AuthMapper {
 
-    public RegisterCommand toCommand(RegisterRequest request) {
+    public RegisterCommand toCommand(RegisterRequestDto request) {
         return new RegisterCommand(
                 request.fullName(), request.email(), request.phoneNumber(), request.password());
     }
 
-    public RegisterResponse toResponse(RegistrationResult result) {
-        return new RegisterResponse(result.userId());
+    public RegisterResponseDto toResponse(RegisterResult result) {
+        return new RegisterResponseDto(result.userId());
     }
 
-    public LoginCommand toCommand(LoginRequest request, String userAgent, InetAddress ipAddress) {
+    public LoginCommand toCommand(LoginRequestDto request, String userAgent, InetAddress ipAddress) {
         return new LoginCommand(request.email(), request.password(), userAgent, ipAddress);
     }
 
-    public LoginResponse toResponse(LoginResult result) {
-        return new LoginResponse(
+    public LoginResponseDto toResponse(LoginResult result) {
+        return new LoginResponseDto(
                 "Bearer", result.accessToken(), result.refreshToken(), result.expiresInSeconds());
     }
 }

@@ -1,6 +1,6 @@
-package com.fitterapp.auth.dto;
+package com.fitterapp.auth.dto.login;
 
-public record LoginResponse(
+public record LoginResponseDto(
         String tokenType,
         String accessToken,
         String refreshToken,

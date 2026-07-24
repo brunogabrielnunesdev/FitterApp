@@ -1,4 +1,4 @@
-package com.fitterapp.auth.service;
+package com.fitterapp.auth.service.login;
 
 import java.net.InetAddress;
 

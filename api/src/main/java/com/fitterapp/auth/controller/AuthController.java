@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fitterapp.auth.dto.ConfirmEmailRequest;
-import com.fitterapp.auth.dto.LoginRequest;
-import com.fitterapp.auth.dto.LoginResponse;
-import com.fitterapp.auth.dto.RegisterRequest;
-import com.fitterapp.auth.dto.RegisterResponse;
-import com.fitterapp.auth.dto.ResendConfirmationRequest;
+import com.fitterapp.auth.dto.emailconfirm.ConfirmEmailRequestDto;
+import com.fitterapp.auth.dto.login.LoginRequestDto;
+import com.fitterapp.auth.dto.login.LoginResponseDto;
+import com.fitterapp.auth.dto.register.RegisterRequestDto;
+import com.fitterapp.auth.dto.register.RegisterResponseDto;
+import com.fitterapp.auth.dto.emailconfirm.ResendConfirmationRequestDto;
 import com.fitterapp.auth.mapper.AuthMapper;
 import com.fitterapp.auth.service.ConfirmEmailService;
 import com.fitterapp.auth.service.LoginService;
@@ -49,7 +49,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
         var command = mapper.toCommand(request);
         var result = registerService.register(command);
         var response = mapper.toResponse(result);
@@ -57,8 +57,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request,
+    public ResponseEntity<LoginResponseDto> login(
+            @Valid @RequestBody LoginRequestDto request,
             HttpServletRequest servletRequest) {
         var command = mapper.toCommand(
                 request,
@@ -70,14 +70,14 @@ public class AuthController {
     }
 
     @PostMapping("/email/confirm")
-    public ResponseEntity<Void> confirmEmail(@Valid @RequestBody ConfirmEmailRequest request) {
+    public ResponseEntity<Void> confirmEmail(@Valid @RequestBody ConfirmEmailRequestDto request) {
         confirmEmailService.confirm(request.token());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/email/resend")
     public ResponseEntity<Void> resendConfirmation(
-            @Valid @RequestBody ResendConfirmationRequest request) {
+            @Valid @RequestBody ResendConfirmationRequestDto request) {
         resendConfirmationService.resend(request.email());
         return ResponseEntity.accepted().build();
     }

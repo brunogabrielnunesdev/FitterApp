@@ -23,13 +23,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fitterapp.auth.exception.InvalidCredentialsException;
 import com.fitterapp.auth.mapper.AuthMapper;
 import com.fitterapp.auth.service.ConfirmEmailService;
-import com.fitterapp.auth.service.LoginCommand;
-import com.fitterapp.auth.service.LoginResult;
 import com.fitterapp.auth.service.LoginService;
-import com.fitterapp.auth.service.RegisterCommand;
 import com.fitterapp.auth.service.RegisterService;
-import com.fitterapp.auth.service.RegistrationResult;
 import com.fitterapp.auth.service.ResendConfirmationService;
+import com.fitterapp.auth.service.login.LoginCommand;
+import com.fitterapp.auth.service.login.LoginResult;
+import com.fitterapp.auth.service.register.RegisterCommand;
+import com.fitterapp.auth.service.register.RegisterResult;
 import com.fitterapp.common.exception.GlobalExceptionHandler;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,7 +58,7 @@ class AuthControllerTests {
     @Test
     void registersUserAndReturnsCreated() throws Exception {
         UUID userId = UUID.randomUUID();
-        when(registerService.register(any())).thenReturn(new RegistrationResult(userId));
+        when(registerService.register(any())).thenReturn(new RegisterResult(userId));
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

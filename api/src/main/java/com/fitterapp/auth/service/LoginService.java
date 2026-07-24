@@ -22,6 +22,8 @@ import com.fitterapp.auth.security.AccessTokenIssuer;
 import com.fitterapp.auth.security.IssuedAccessToken;
 import com.fitterapp.auth.security.TokenGenerator;
 import com.fitterapp.auth.security.TokenHasher;
+import com.fitterapp.auth.service.login.LoginCommand;
+import com.fitterapp.auth.service.login.LoginResult;
 import com.fitterapp.user.entity.RoleName;
 import com.fitterapp.user.entity.User;
 import com.fitterapp.user.entity.UserStatus;

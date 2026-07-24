@@ -16,6 +16,8 @@ import com.fitterapp.auth.exception.RoleNotConfiguredException;
 import com.fitterapp.auth.repository.EmailVerificationTokenRepository;
 import com.fitterapp.auth.security.TokenGenerator;
 import com.fitterapp.auth.security.TokenHasher;
+import com.fitterapp.auth.service.register.RegisterCommand;
+import com.fitterapp.auth.service.register.RegisterResult;
 import com.fitterapp.user.entity.Role;
 import com.fitterapp.user.entity.RoleName;
 import com.fitterapp.user.entity.User;
@@ -61,7 +63,7 @@ public class RegisterService {
     }
 
     @Transactional
-    public RegistrationResult register(RegisterCommand command) {
+    public RegisterResult register(RegisterCommand command) {
         String normalizedEmail = normalizeEmail(command.email());
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new EmailAlreadyRegisteredException();
@@ -92,7 +94,7 @@ public class RegisterService {
                 user.getFullName(),
                 rawVerificationToken));
 
-        return new RegistrationResult(user.getId());
+        return new RegisterResult(user.getId());
     }
 
     private String normalizeEmail(String email) {
