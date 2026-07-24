@@ -47,7 +47,7 @@ class AuthSchemaMigrationTests {
                 "SELECT name FROM roles ORDER BY id",
                 String.class);
 
-        assertThat(roles).containsExactly("STUDENT", "PERSONAL", "ADMIN");
+        assertThat(roles).containsExactly("STUDENT", "PERSONAL", "ADMIN", "OWNER");
     }
 
     @Test
