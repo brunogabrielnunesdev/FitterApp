@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "FitterApp",
+    "slug": "fitterapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/fitterapp-logo.png",
+    "scheme": "fitterapp",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "icon": "./assets/images/fitterapp-logo.png"
+    },
+    "android": {
+      "package": "com.fitterapp.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#080808",
+        "foregroundImage": "./assets/images/fitterapp-logo.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/fitterapp-logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#080808",
+          "image": "./assets/images/fitterapp-logo.png",
+          "imageWidth": 160
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
