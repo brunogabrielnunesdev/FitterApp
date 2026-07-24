@@ -1,10 +1,8 @@
 package com.fitterapp.personal.entity;
 
-public enum PersonalProfileStatus {
+public enum PersonalProfileRevisionStatus {
     DRAFT,
     PENDING_REVIEW,
     APPROVED,
-    PUBLISHED,
-    REJECTED,
-    SUSPENDED
+    REJECTED
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -73,6 +74,14 @@ public class PersonalProfile {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_revision_id")
+    private PersonalProfileRevision currentRevision;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "published_revision_id")
+    private PersonalProfileRevision publishedRevision;
+
     protected PersonalProfile() {
     }
 
@@ -127,6 +136,45 @@ public class PersonalProfile {
         status = PersonalProfileStatus.PUBLISHED;
         this.publishedAt = publishedAt;
         updatedAt = publishedAt;
+    }
+
+    public void setCurrentRevision(
+            PersonalProfileRevision revision,
+            OffsetDateTime updatedAt) {
+        currentRevision = revision;
+        this.updatedAt = updatedAt;
+    }
+
+    public void submitForReview(OffsetDateTime submittedAt) {
+        status = PersonalProfileStatus.PENDING_REVIEW;
+        updatedAt = submittedAt;
+    }
+
+    public void approve(OffsetDateTime approvedAt) {
+        status = PersonalProfileStatus.APPROVED;
+        updatedAt = approvedAt;
+    }
+
+    public void reject(OffsetDateTime rejectedAt) {
+        status = PersonalProfileStatus.REJECTED;
+        updatedAt = rejectedAt;
+    }
+
+    public void publish(
+            PersonalProfileRevision revision,
+            OffsetDateTime publishedAt) {
+        currentRevision = revision;
+        publishedRevision = revision;
+        status = PersonalProfileStatus.PUBLISHED;
+        this.publishedAt = publishedAt;
+        updatedAt = publishedAt;
+    }
+
+    public void unpublish(OffsetDateTime unpublishedAt) {
+        status = PersonalProfileStatus.APPROVED;
+        publishedRevision = null;
+        publishedAt = null;
+        updatedAt = unpublishedAt;
     }
 
     public void suspend(OffsetDateTime suspendedAt) {
@@ -196,5 +244,13 @@ public class PersonalProfile {
 
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public PersonalProfileRevision getCurrentRevision() {
+        return currentRevision;
+    }
+
+    public PersonalProfileRevision getPublishedRevision() {
+        return publishedRevision;
     }
 }
