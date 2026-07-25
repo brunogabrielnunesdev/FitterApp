@@ -1,5 +1,9 @@
 package com.fitterapp.user.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +13,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "roles")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Role {
 
     @Id
@@ -18,14 +24,6 @@ public class Role {
     @Column(nullable = false, unique = true, length = 30)
     private RoleName name;
 
-    protected Role() {
-    }
 
-    public Short getId() {
-        return id;
-    }
 
-    public RoleName getName() {
-        return name;
-    }
 }

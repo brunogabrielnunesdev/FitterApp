@@ -1,5 +1,7 @@
 package com.fitterapp.auth.service;
 
+import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
+import com.fitterapp.auth.service.verification.VerificationEmailRequested;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;

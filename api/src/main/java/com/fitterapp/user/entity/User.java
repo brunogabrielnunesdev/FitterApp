@@ -1,5 +1,9 @@
 package com.fitterapp.user.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -14,6 +18,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
     @Id
@@ -45,8 +51,6 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    protected User() {
-    }
 
     public static User pendingRegistration(
             String fullName,
@@ -76,39 +80,12 @@ public class User {
         updatedAt = blockedAt;
     }
 
-    public UUID getId() {
-        return id;
-    }
 
-    public String getFullName() {
-        return fullName;
-    }
 
-    public String getEmail() {
-        return email;
-    }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
 
-    public String getPasswordHash() {
-        return passwordHash;
-    }
 
-    public UserStatus getStatus() {
-        return status;
-    }
 
-    public OffsetDateTime getEmailVerifiedAt() {
-        return emailVerifiedAt;
-    }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
 
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
-    }
 }

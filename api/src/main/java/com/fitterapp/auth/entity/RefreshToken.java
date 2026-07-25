@@ -1,5 +1,9 @@
 package com.fitterapp.auth.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.net.InetAddress;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -20,6 +24,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "refresh_tokens")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
     @Id
@@ -60,8 +66,6 @@ public class RefreshToken {
     @Column(name = "ip_address", columnDefinition = "inet")
     private InetAddress ipAddress;
 
-    protected RefreshToken() {
-    }
 
     public static RefreshToken issue(
             User user,
@@ -82,47 +86,14 @@ public class RefreshToken {
         return token;
     }
 
-    public UUID getId() {
-        return id;
-    }
 
-    public User getUser() {
-        return user;
-    }
 
-    public UUID getFamilyId() {
-        return familyId;
-    }
 
-    public String getTokenHash() {
-        return tokenHash;
-    }
 
-    public OffsetDateTime getExpiresAt() {
-        return expiresAt;
-    }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
 
-    public OffsetDateTime getLastUsedAt() {
-        return lastUsedAt;
-    }
 
-    public OffsetDateTime getRevokedAt() {
-        return revokedAt;
-    }
 
-    public RefreshToken getReplacedBy() {
-        return replacedBy;
-    }
 
-    public String getUserAgent() {
-        return userAgent;
-    }
 
-    public InetAddress getIpAddress() {
-        return ipAddress;
-    }
 }

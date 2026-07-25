@@ -1,5 +1,9 @@
 package com.fitterapp.auth.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -19,6 +23,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "password_reset_tokens")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PasswordResetToken {
 
     @Id
@@ -42,30 +48,10 @@ public class PasswordResetToken {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    protected PasswordResetToken() {
-    }
 
-    public UUID getId() {
-        return id;
-    }
 
-    public User getUser() {
-        return user;
-    }
 
-    public String getTokenHash() {
-        return tokenHash;
-    }
 
-    public OffsetDateTime getExpiresAt() {
-        return expiresAt;
-    }
 
-    public OffsetDateTime getUsedAt() {
-        return usedAt;
-    }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
 }

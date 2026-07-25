@@ -1,5 +1,8 @@
 package com.fitterapp.auth.service;
 
+import com.fitterapp.auth.service.verification.VerificationEmailListener;
+import com.fitterapp.auth.service.verification.VerificationEmailRequested;
+import com.fitterapp.auth.service.verification.VerificationEmailSender;
 import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;

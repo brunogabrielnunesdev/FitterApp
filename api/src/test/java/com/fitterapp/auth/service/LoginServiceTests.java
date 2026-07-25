@@ -2,6 +2,7 @@ package com.fitterapp.auth.service;
 
 import com.fitterapp.auth.service.login.LoginCommand;
 import com.fitterapp.auth.service.login.LoginResult;
+import com.fitterapp.auth.service.login.LoginService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

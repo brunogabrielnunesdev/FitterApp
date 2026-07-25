@@ -1,5 +1,9 @@
 package com.fitterapp.auth.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -19,6 +23,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "email_verification_tokens")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmailVerificationToken {
 
     @Id
@@ -42,8 +48,6 @@ public class EmailVerificationToken {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    protected EmailVerificationToken() {
-    }
 
     public static EmailVerificationToken issue(
             User user,
@@ -70,27 +74,9 @@ public class EmailVerificationToken {
         usedAt = timestamp;
     }
 
-    public UUID getId() {
-        return id;
-    }
 
-    public User getUser() {
-        return user;
-    }
 
-    public String getTokenHash() {
-        return tokenHash;
-    }
 
-    public OffsetDateTime getExpiresAt() {
-        return expiresAt;
-    }
 
-    public OffsetDateTime getUsedAt() {
-        return usedAt;
-    }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
 }

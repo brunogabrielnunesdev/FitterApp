@@ -1,5 +1,7 @@
 package com.fitterapp.auth.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -17,16 +19,17 @@ import com.fitterapp.auth.dto.register.RegisterRequestDto;
 import com.fitterapp.auth.dto.register.RegisterResponseDto;
 import com.fitterapp.auth.dto.emailconfirm.ResendConfirmationRequestDto;
 import com.fitterapp.auth.mapper.AuthMapper;
-import com.fitterapp.auth.service.ConfirmEmailService;
-import com.fitterapp.auth.service.LoginService;
-import com.fitterapp.auth.service.RegisterService;
-import com.fitterapp.auth.service.ResendConfirmationService;
+import com.fitterapp.auth.service.emailconfirm.ConfirmEmailService;
+import com.fitterapp.auth.service.login.LoginService;
+import com.fitterapp.auth.service.register.RegisterService;
+import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final RegisterService registerService;
@@ -34,19 +37,6 @@ public class AuthController {
     private final ConfirmEmailService confirmEmailService;
     private final ResendConfirmationService resendConfirmationService;
     private final AuthMapper mapper;
-
-    public AuthController(
-            RegisterService registerService,
-            LoginService loginService,
-            ConfirmEmailService confirmEmailService,
-            ResendConfirmationService resendConfirmationService,
-            AuthMapper mapper) {
-        this.registerService = registerService;
-        this.loginService = loginService;
-        this.confirmEmailService = confirmEmailService;
-        this.resendConfirmationService = resendConfirmationService;
-        this.mapper = mapper;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {

@@ -2,6 +2,8 @@ package com.fitterapp.auth.service;
 
 import com.fitterapp.auth.service.register.RegisterCommand;
 import com.fitterapp.auth.service.register.RegisterResult;
+import com.fitterapp.auth.service.register.RegisterService;
+import com.fitterapp.auth.service.verification.VerificationEmailRequested;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

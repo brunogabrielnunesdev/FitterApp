@@ -11,23 +11,23 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-import com.fitterapp.academy.entity.AcademyCnpj;
-import com.fitterapp.academy.entity.AcademyCnpjStatus;
-import com.fitterapp.academy.entity.AcademyMember;
-import com.fitterapp.academy.entity.AcademyMemberId;
-import com.fitterapp.academy.entity.AcademyMemberRole;
-import com.fitterapp.academy.entity.AcademyMemberStatus;
-import com.fitterapp.academy.entity.AcademyPersonalPartnership;
-import com.fitterapp.academy.entity.AcademyProfile;
-import com.fitterapp.academy.entity.AcademyProfileRevision;
-import com.fitterapp.academy.entity.AcademyProfileRevisionStatus;
-import com.fitterapp.academy.entity.AcademyProfileStatus;
-import com.fitterapp.academy.entity.AcademyRevisionModality;
-import com.fitterapp.academy.entity.AcademyRevisionModalityId;
-import com.fitterapp.academy.entity.PartnershipInitiator;
-import com.fitterapp.academy.entity.PartnershipStatus;
-import com.fitterapp.personal.entity.Modality;
-import com.fitterapp.personal.entity.PersonalProfile;
+import com.fitterapp.academy.entity.cnpj.AcademyCnpj;
+import com.fitterapp.academy.entity.cnpj.AcademyCnpjStatus;
+import com.fitterapp.academy.entity.member.AcademyMember;
+import com.fitterapp.academy.entity.member.AcademyMemberId;
+import com.fitterapp.academy.entity.member.AcademyMemberRole;
+import com.fitterapp.academy.entity.member.AcademyMemberStatus;
+import com.fitterapp.academy.entity.partnership.AcademyPersonalPartnership;
+import com.fitterapp.academy.entity.profile.AcademyProfile;
+import com.fitterapp.academy.entity.profile.AcademyProfileRevision;
+import com.fitterapp.academy.entity.profile.AcademyProfileRevisionStatus;
+import com.fitterapp.academy.entity.profile.AcademyProfileStatus;
+import com.fitterapp.academy.entity.modality.AcademyRevisionModality;
+import com.fitterapp.academy.entity.modality.AcademyRevisionModalityId;
+import com.fitterapp.academy.entity.partnership.PartnershipInitiator;
+import com.fitterapp.academy.entity.partnership.PartnershipStatus;
+import com.fitterapp.personal.entity.modality.Modality;
+import com.fitterapp.personal.entity.profile.Profile;
 import com.fitterapp.user.entity.User;
 
 import jakarta.persistence.EntityManager;
@@ -201,7 +201,7 @@ class AcademyCatalogPersistenceTests {
         AcademyProfile academy = AcademyProfile.draft(
                 "parceria_fitness",
                 createdAt);
-        PersonalProfile personal = PersonalProfile.draft(
+        Profile personal = Profile.draft(
                 "Partnership Personal",
                 "partnership-personal",
                 createdAt);

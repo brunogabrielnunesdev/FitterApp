@@ -1,5 +1,9 @@
 package com.fitterapp.user.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.OffsetDateTime;
 
 import jakarta.persistence.Column;
@@ -13,6 +17,8 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user_roles")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserRole {
 
     @EmbeddedId
@@ -35,8 +41,6 @@ public class UserRole {
     @JoinColumn(name = "granted_by")
     private User grantedBy;
 
-    protected UserRole() {
-    }
 
     public static UserRole grantedBySystem(User user, Role role, OffsetDateTime grantedAt) {
         UserRole userRole = new UserRole();
@@ -47,23 +51,8 @@ public class UserRole {
         return userRole;
     }
 
-    public UserRoleId getId() {
-        return id;
-    }
 
-    public User getUser() {
-        return user;
-    }
 
-    public Role getRole() {
-        return role;
-    }
 
-    public OffsetDateTime getGrantedAt() {
-        return grantedAt;
-    }
 
-    public User getGrantedBy() {
-        return grantedBy;
-    }
 }

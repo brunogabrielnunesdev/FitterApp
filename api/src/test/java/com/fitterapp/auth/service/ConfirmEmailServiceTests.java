@@ -1,5 +1,6 @@
 package com.fitterapp.auth.service;
 
+import com.fitterapp.auth.service.emailconfirm.ConfirmEmailService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;

@@ -16,16 +16,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fitterapp.auth.exception.InvalidCredentialsException;
 import com.fitterapp.auth.mapper.AuthMapper;
-import com.fitterapp.auth.service.ConfirmEmailService;
-import com.fitterapp.auth.service.LoginService;
-import com.fitterapp.auth.service.RegisterService;
-import com.fitterapp.auth.service.ResendConfirmationService;
+import com.fitterapp.auth.service.emailconfirm.ConfirmEmailService;
+import com.fitterapp.auth.service.login.LoginService;
+import com.fitterapp.auth.service.register.RegisterService;
+import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
 import com.fitterapp.auth.service.login.LoginCommand;
 import com.fitterapp.auth.service.login.LoginResult;
 import com.fitterapp.auth.service.register.RegisterCommand;
@@ -49,7 +50,7 @@ class AuthControllerTests {
                 loginService,
                 confirmEmailService,
                 resendConfirmationService,
-                new AuthMapper());
+                Mappers.getMapper(AuthMapper.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

@@ -1,5 +1,9 @@
 package com.fitterapp.user.entity;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
@@ -8,6 +12,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserRoleId implements Serializable {
 
     @Column(name = "user_id")
@@ -16,21 +22,13 @@ public class UserRoleId implements Serializable {
     @Column(name = "role_id")
     private Short roleId;
 
-    protected UserRoleId() {
-    }
 
     public UserRoleId(UUID userId, Short roleId) {
         this.userId = Objects.requireNonNull(userId);
         this.roleId = Objects.requireNonNull(roleId);
     }
 
-    public UUID getUserId() {
-        return userId;
-    }
 
-    public Short getRoleId() {
-        return roleId;
-    }
 
     @Override
     public boolean equals(Object other) {

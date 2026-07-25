@@ -1,5 +1,6 @@
 package com.fitterapp.auth.service;
 
+import com.fitterapp.auth.service.verification.SmtpVerificationEmailSender;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 

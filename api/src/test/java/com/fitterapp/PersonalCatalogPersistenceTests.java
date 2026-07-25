@@ -13,16 +13,16 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.fitterapp.personal.entity.Modality;
-import com.fitterapp.personal.entity.PersonalModality;
-import com.fitterapp.personal.entity.PersonalModalityId;
-import com.fitterapp.personal.entity.PersonalProfile;
-import com.fitterapp.personal.entity.PersonalProfileStatus;
-import com.fitterapp.personal.entity.PersonalServiceArea;
-import com.fitterapp.personal.entity.PersonalServiceMode;
-import com.fitterapp.personal.entity.PersonalServiceModeId;
-import com.fitterapp.personal.entity.PriceUnit;
-import com.fitterapp.personal.entity.ServiceMode;
+import com.fitterapp.personal.entity.modality.Modality;
+import com.fitterapp.personal.entity.modality.PersonalModality;
+import com.fitterapp.personal.entity.modality.PersonalModalityId;
+import com.fitterapp.personal.entity.profile.Profile;
+import com.fitterapp.personal.entity.profile.ProfileStatus;
+import com.fitterapp.personal.entity.service.PersonalServiceArea;
+import com.fitterapp.personal.entity.service.PersonalServiceMode;
+import com.fitterapp.personal.entity.service.PersonalServiceModeId;
+import com.fitterapp.personal.entity.service.PriceUnit;
+import com.fitterapp.personal.entity.service.ServiceMode;
 
 import jakarta.persistence.EntityManager;
 
@@ -63,13 +63,13 @@ class PersonalCatalogPersistenceTests {
                 "Academia Fitter",
                 15000,
                 PriceUnit.PER_SESSION.name(),
-                PersonalProfileStatus.PUBLISHED.name(),
+                ProfileStatus.PUBLISHED.name(),
                 now,
                 now.minusDays(1),
                 now);
 
         entityManager.clear();
-        PersonalProfile profile = entityManager.find(PersonalProfile.class, personalId);
+        Profile profile = entityManager.find(Profile.class, personalId);
 
         assertThat(profile).isNotNull();
         assertThat(profile.getUser().getId()).isEqualTo(userId);
@@ -79,7 +79,7 @@ class PersonalCatalogPersistenceTests {
         assertThat(profile.getExperienceStartedYear()).isEqualTo((short) 2018);
         assertThat(profile.getStartingPriceCents()).isEqualTo(15000);
         assertThat(profile.getPriceUnit()).isEqualTo(PriceUnit.PER_SESSION);
-        assertThat(profile.getStatus()).isEqualTo(PersonalProfileStatus.PUBLISHED);
+        assertThat(profile.getStatus()).isEqualTo(ProfileStatus.PUBLISHED);
         assertThat(profile.getPublishedAt()).isEqualTo(now);
     }
 
@@ -146,7 +146,7 @@ class PersonalCatalogPersistenceTests {
                 id,
                 "Persistence Personal",
                 "persistence-" + id,
-                PersonalProfileStatus.DRAFT.name(),
+                ProfileStatus.DRAFT.name(),
                 now,
                 now);
 

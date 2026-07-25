@@ -2,7 +2,8 @@ package com.fitterapp.auth.mapper;
 
 import java.net.InetAddress;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.fitterapp.auth.dto.login.LoginRequestDto;
 import com.fitterapp.auth.dto.login.LoginResponseDto;
@@ -12,25 +13,20 @@ import com.fitterapp.auth.service.login.LoginCommand;
 import com.fitterapp.auth.service.login.LoginResult;
 import com.fitterapp.auth.service.register.RegisterCommand;
 import com.fitterapp.auth.service.register.RegisterResult;
+import com.fitterapp.common.config.CentralMapperConfig;
 
-@Component
-public class AuthMapper {
+@Mapper(config = CentralMapperConfig.class)
+public interface AuthMapper {
 
-    public RegisterCommand toCommand(RegisterRequestDto request) {
-        return new RegisterCommand(
-                request.fullName(), request.email(), request.phoneNumber(), request.password());
-    }
+    RegisterCommand toCommand(RegisterRequestDto request);
 
-    public RegisterResponseDto toResponse(RegisterResult result) {
-        return new RegisterResponseDto(result.userId());
-    }
+    RegisterResponseDto toResponse(RegisterResult result);
 
-    public LoginCommand toCommand(LoginRequestDto request, String userAgent, InetAddress ipAddress) {
-        return new LoginCommand(request.email(), request.password(), userAgent, ipAddress);
-    }
+    LoginCommand toCommand(
+            LoginRequestDto request,
+            String userAgent,
+            InetAddress ipAddress);
 
-    public LoginResponseDto toResponse(LoginResult result) {
-        return new LoginResponseDto(
-                "Bearer", result.accessToken(), result.refreshToken(), result.expiresInSeconds());
-    }
+    @Mapping(target = "tokenType", constant = "Bearer")
+    LoginResponseDto toResponse(LoginResult result);
 }
