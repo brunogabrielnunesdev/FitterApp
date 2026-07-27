@@ -21,9 +21,44 @@ import com.fitterapp.auth.exception.InvalidVerificationTokenException;
 import com.fitterapp.auth.exception.RoleNotConfiguredException;
 import com.fitterapp.auth.exception.VerificationTokenAlreadyUsedException;
 import com.fitterapp.auth.exception.VerificationTokenExpiredException;
+import com.fitterapp.personal.exception.ProfileNotFoundException;
+import com.fitterapp.personal.exception.ProfileAlreadyExistsException;
+import com.fitterapp.personal.exception.CrefAlreadyInUseException;
+import com.fitterapp.personal.exception.DuplicateServiceAreaException;
+import com.fitterapp.personal.exception.IncompleteProfileException;
+import com.fitterapp.personal.exception.InvalidProfilePriceException;
+import com.fitterapp.personal.exception.InvalidServiceAreaException;
+import com.fitterapp.personal.exception.ProfileNotApprovedException;
+import com.fitterapp.personal.exception.ProfileNotPendingReviewException;
+import com.fitterapp.personal.exception.ProfileRevisionNotEditableException;
+import com.fitterapp.personal.exception.ReviewReasonRequiredException;
+import com.fitterapp.personal.exception.UnavailableModalityException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ProfileNotFoundException.class)
+    ResponseEntity<ProblemDetail> handleProfileNotFound(ProfileNotFoundException exception) {
+        return problem(HttpStatus.NOT_FOUND, "PROFILE_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler({ProfileAlreadyExistsException.class, CrefAlreadyInUseException.class})
+    ResponseEntity<ProblemDetail> handleProfileConflict(RuntimeException exception) {
+        return problem(HttpStatus.CONFLICT, "PROFILE_CONFLICT", exception.getMessage());
+    }
+
+    @ExceptionHandler({IncompleteProfileException.class, InvalidProfilePriceException.class,
+            InvalidServiceAreaException.class, DuplicateServiceAreaException.class,
+            ReviewReasonRequiredException.class, UnavailableModalityException.class})
+    ResponseEntity<ProblemDetail> handleProfileValidation(RuntimeException exception) {
+        return problem(HttpStatus.BAD_REQUEST, "PROFILE_VALIDATION_ERROR", exception.getMessage());
+    }
+
+    @ExceptionHandler({ProfileRevisionNotEditableException.class, ProfileNotPendingReviewException.class,
+            ProfileNotApprovedException.class})
+    ResponseEntity<ProblemDetail> handleProfileState(RuntimeException exception) {
+        return problem(HttpStatus.CONFLICT, "PROFILE_INVALID_STATE", exception.getMessage());
+    }
 
     @ExceptionHandler(EmailAlreadyRegisteredException.class)
     ResponseEntity<ProblemDetail> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException exception) {
