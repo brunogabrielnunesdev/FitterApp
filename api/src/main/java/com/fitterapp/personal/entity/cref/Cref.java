@@ -96,6 +96,19 @@ public class Cref {
         this.updatedAt = rejectedAt;
     }
 
+    public void resubmit(
+            String registrationCode,
+            String documentImageKey,
+            OffsetDateTime updatedAt) {
+        this.registrationCode = registrationCode;
+        this.documentImageKey = documentImageKey;
+        this.status = CrefStatus.PENDING_REVIEW;
+        this.verifiedAt = null;
+        this.verifiedBy = null;
+        this.rejectionReason = null;
+        this.updatedAt = updatedAt;
+    }
+
 
 
 
