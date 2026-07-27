@@ -11,4 +11,6 @@ public interface RevisionServiceModeRepository
         extends JpaRepository<RevisionServiceMode, RevisionServiceModeId> {
 
     void deleteByRevisionId(UUID revisionId);
+
+    long countByIdRevisionId(UUID revisionId);
 }

@@ -10,4 +10,6 @@ import com.fitterapp.personal.entity.profile.RevisionModalityId;
 public interface RevisionModalityRepository extends JpaRepository<RevisionModality, RevisionModalityId> {
 
     void deleteByRevisionId(UUID revisionId);
+
+    long countByIdRevisionId(UUID revisionId);
 }
