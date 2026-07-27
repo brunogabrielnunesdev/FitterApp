@@ -14,4 +14,6 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     boolean existsBySlug(String slug);
 
     Optional<Profile> findByUserId(UUID userId);
+
+    Optional<Profile> findByIdAndUserId(UUID id, UUID userId);
 }
