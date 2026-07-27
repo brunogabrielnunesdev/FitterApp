@@ -36,7 +36,9 @@ public class SubmitProfileForReviewService {
             throw new ProfileRevisionNotEditableException();
         }
         if (!isComplete(revision)) throw new IncompleteProfileException();
-        revision.submit(OffsetDateTime.now(clock));
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        revision.submit(now);
+        profile.submitForReview(now);
         return new SubmitProfileForReviewResult(profile.getId(), revision.getId());
     }
 

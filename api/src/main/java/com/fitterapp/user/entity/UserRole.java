@@ -43,11 +43,16 @@ public class UserRole {
 
 
     public static UserRole grantedBySystem(User user, Role role, OffsetDateTime grantedAt) {
+        return granted(user, role, null, grantedAt);
+    }
+
+    public static UserRole granted(User user, Role role, User grantedBy, OffsetDateTime grantedAt) {
         UserRole userRole = new UserRole();
         userRole.id = new UserRoleId(user.getId(), role.getId());
         userRole.user = user;
         userRole.role = role;
         userRole.grantedAt = grantedAt;
+        userRole.grantedBy = grantedBy;
         return userRole;
     }
 
