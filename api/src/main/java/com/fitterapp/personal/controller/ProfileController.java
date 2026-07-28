@@ -1,20 +1,5 @@
 package com.fitterapp.personal.controller;
 
-import java.net.URI;
-import java.util.UUID;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.fitterapp.personal.dto.profile.CreateProfileRequestDto;
 import com.fitterapp.personal.dto.profile.ProfileActionResponseDto;
 import com.fitterapp.personal.dto.profile.ProfileStatusResponseDto;
@@ -36,112 +21,123 @@ import com.fitterapp.personal.service.service.UpdateProfileServiceModesService;
 import com.fitterapp.personal.service.submission.SubmitProfileForReviewCommand;
 import com.fitterapp.personal.service.submission.SubmitProfileForReviewService;
 import com.fitterapp.personal.service.update.UpdateProfileDraftService;
-
 import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/me/personal-profile")
 @RequiredArgsConstructor
 public class ProfileController {
 
-    private final ProfileMapper mapper;
-    private final CreateProfileService createProfileService;
-    private final UpdateProfileDraftService updateProfileDraftService;
-    private final UpsertCrefService upsertCrefService;
-    private final UpdateProfileModalitiesService updateProfileModalitiesService;
-    private final UpdateProfileServiceModesService updateProfileServiceModesService;
-    private final UpdateProfileServiceAreasService updateProfileServiceAreasService;
-    private final SubmitProfileForReviewService submitProfileForReviewService;
-    private final ProfilePublicationService profilePublicationService;
-    private final GetOwnProfileService getOwnProfileService;
+  private final ProfileMapper mapper;
+  private final CreateProfileService createProfileService;
+  private final UpdateProfileDraftService updateProfileDraftService;
+  private final UpsertCrefService upsertCrefService;
+  private final UpdateProfileModalitiesService updateProfileModalitiesService;
+  private final UpdateProfileServiceModesService updateProfileServiceModesService;
+  private final UpdateProfileServiceAreasService updateProfileServiceAreasService;
+  private final SubmitProfileForReviewService submitProfileForReviewService;
+  private final ProfilePublicationService profilePublicationService;
+  private final GetOwnProfileService getOwnProfileService;
 
-    @GetMapping
-    public ResponseEntity<ProfileStatusResponseDto> getOwnProfile(@AuthenticationPrincipal Jwt jwt) {
-        var profile = getOwnProfileService.get(userId(jwt));
-        return ResponseEntity.ok(mapper.toStatusResponse(profile));
-    }
+  @GetMapping
+  public ResponseEntity<ProfileStatusResponseDto> getOwnProfile(@AuthenticationPrincipal Jwt jwt) {
+    var profile = getOwnProfileService.get(userId(jwt));
+    return ResponseEntity.ok(mapper.toStatusResponse(profile));
+  }
 
-    @PostMapping
-    public ResponseEntity<ProfileActionResponseDto> create(
-            @AuthenticationPrincipal Jwt jwt,
-            @RequestBody CreateProfileRequestDto request) {
-        var result = createProfileService.create(mapper.toCreateCommand(userId(jwt), request));
-        var response = new ProfileActionResponseDto(result.profileId(), result.revisionId());
-        URI location = URI.create("/api/v1/me/personal-profile/" + result.profileId());
-        return ResponseEntity.created(location).body(response);
-    }
+  @PostMapping
+  public ResponseEntity<ProfileActionResponseDto> create(
+      @AuthenticationPrincipal Jwt jwt, @RequestBody CreateProfileRequestDto request) {
+    var result = createProfileService.create(mapper.toCreateCommand(userId(jwt), request));
+    var response = new ProfileActionResponseDto(result.profileId(), result.revisionId());
+    URI location = URI.create("/api/v1/me/personal-profile/" + result.profileId());
+    return ResponseEntity.created(location).body(response);
+  }
 
-    @PutMapping("/{profileId}")
-    public ResponseEntity<Void> updateDraft(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId,
-            @RequestBody UpdateProfileDraftRequestDto request) {
-        updateProfileDraftService.update(mapper.toUpdateCommand(userId(jwt), profileId, request));
-        return ResponseEntity.noContent().build();
-    }
+  @PutMapping("/{profileId}")
+  public ResponseEntity<Void> updateDraft(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @RequestBody UpdateProfileDraftRequestDto request) {
+    updateProfileDraftService.update(mapper.toUpdateCommand(userId(jwt), profileId, request));
+    return ResponseEntity.noContent().build();
+  }
 
-    @PutMapping("/{profileId}/cref")
-    public ResponseEntity<Void> updateCref(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId,
-            @Valid @RequestBody UpsertCrefRequestDto request) {
-        upsertCrefService.upsert(mapper.toCrefCommand(userId(jwt), profileId, request));
-        return ResponseEntity.noContent().build();
-    }
+  @PutMapping("/{profileId}/cref")
+  public ResponseEntity<Void> updateCref(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @Valid @RequestBody UpsertCrefRequestDto request) {
+    upsertCrefService.upsert(mapper.toCrefCommand(userId(jwt), profileId, request));
+    return ResponseEntity.noContent().build();
+  }
 
-    @PutMapping("/{profileId}/modalities")
-    public ResponseEntity<Void> updateModalities(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId,
-            @RequestBody UpdateModalitiesRequestDto request) {
-        updateProfileModalitiesService.update(mapper.toModalitiesCommand(userId(jwt), profileId, request));
-        return ResponseEntity.noContent().build();
-    }
+  @PutMapping("/{profileId}/modalities")
+  public ResponseEntity<Void> updateModalities(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @RequestBody UpdateModalitiesRequestDto request) {
+    updateProfileModalitiesService.update(
+        mapper.toModalitiesCommand(userId(jwt), profileId, request));
+    return ResponseEntity.noContent().build();
+  }
 
-    @PutMapping("/{profileId}/service-modes")
-    public ResponseEntity<Void> updateServiceModes(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId,
-            @RequestBody UpdateServiceModesRequestDto request) {
-        updateProfileServiceModesService.update(mapper.toServiceModesCommand(userId(jwt), profileId, request));
-        return ResponseEntity.noContent().build();
-    }
+  @PutMapping("/{profileId}/service-modes")
+  public ResponseEntity<Void> updateServiceModes(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @RequestBody UpdateServiceModesRequestDto request) {
+    updateProfileServiceModesService.update(
+        mapper.toServiceModesCommand(userId(jwt), profileId, request));
+    return ResponseEntity.noContent().build();
+  }
 
-    @PutMapping("/{profileId}/service-areas")
-    public ResponseEntity<Void> updateServiceAreas(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId,
-            @RequestBody UpdateServiceAreasRequestDto request) {
-        updateProfileServiceAreasService.update(mapper.toServiceAreasCommand(userId(jwt), profileId, request));
-        return ResponseEntity.noContent().build();
-    }
+  @PutMapping("/{profileId}/service-areas")
+  public ResponseEntity<Void> updateServiceAreas(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @RequestBody UpdateServiceAreasRequestDto request) {
+    updateProfileServiceAreasService.update(
+        mapper.toServiceAreasCommand(userId(jwt), profileId, request));
+    return ResponseEntity.noContent().build();
+  }
 
-    @PostMapping("/{profileId}/submission")
-    public ResponseEntity<Void> submit(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId) {
-        submitProfileForReviewService.submit(new SubmitProfileForReviewCommand(userId(jwt), profileId));
-        return ResponseEntity.noContent().build();
-    }
+  @PostMapping("/{profileId}/submission")
+  public ResponseEntity<Void> submit(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID profileId) {
+    submitProfileForReviewService.submit(new SubmitProfileForReviewCommand(userId(jwt), profileId));
+    return ResponseEntity.noContent().build();
+  }
 
-    @PostMapping("/{profileId}/publication")
-    public ResponseEntity<Void> publish(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId) {
-        profilePublicationService.publish(new PublishProfileCommand(userId(jwt), profileId));
-        return ResponseEntity.noContent().build();
-    }
+  @PostMapping("/{profileId}/publication")
+  public ResponseEntity<Void> publish(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID profileId) {
+    profilePublicationService.publish(new PublishProfileCommand(userId(jwt), profileId));
+    return ResponseEntity.noContent().build();
+  }
 
-    @DeleteMapping("/{profileId}/publication")
-    public ResponseEntity<Void> unpublish(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID profileId) {
-        profilePublicationService.unpublish(new UnpublishProfileCommand(userId(jwt), profileId));
-        return ResponseEntity.noContent().build();
-    }
+  @DeleteMapping("/{profileId}/publication")
+  public ResponseEntity<Void> unpublish(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID profileId) {
+    profilePublicationService.unpublish(new UnpublishProfileCommand(userId(jwt), profileId));
+    return ResponseEntity.noContent().build();
+  }
 
-    private UUID userId(Jwt jwt) {
-        return UUID.fromString(jwt.getSubject());
-    }
+  private UUID userId(Jwt jwt) {
+    return UUID.fromString(jwt.getSubject());
+  }
 }

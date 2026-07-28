@@ -4,7 +4,4 @@ import java.util.List;
 import java.util.UUID;
 
 public record UpdateProfileServiceAreasCommand(
-        UUID userId,
-        UUID profileId,
-        List<ServiceAreaInput> serviceAreas) {
-}
+    UUID userId, UUID profileId, List<ServiceAreaInput> serviceAreas) {}

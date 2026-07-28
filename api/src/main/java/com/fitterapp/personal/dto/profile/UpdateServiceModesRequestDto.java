@@ -1,3 +1,6 @@
 package com.fitterapp.personal.dto.profile;
-import java.util.List; import com.fitterapp.personal.entity.service.ServiceMode;
-public record UpdateServiceModesRequestDto(List<ServiceMode> serviceModes) { }
+
+import com.fitterapp.personal.entity.service.ServiceMode;
+import java.util.List;
+
+public record UpdateServiceModesRequestDto(List<ServiceMode> serviceModes) {}

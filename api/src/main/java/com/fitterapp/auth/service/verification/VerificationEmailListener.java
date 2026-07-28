@@ -1,7 +1,6 @@
 package com.fitterapp.auth.service.verification;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -10,10 +9,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class VerificationEmailListener {
 
-    private final VerificationEmailSender emailSender;
+  private final VerificationEmailSender emailSender;
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onVerificationEmailRequested(VerificationEmailRequested event) {
-        emailSender.send(event.email(), event.fullName(), event.rawToken());
-    }
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void onVerificationEmailRequested(VerificationEmailRequested event) {
+    emailSender.send(event.email(), event.fullName(), event.rawToken());
+  }
 }

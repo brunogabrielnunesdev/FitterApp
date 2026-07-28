@@ -1,12 +1,8 @@
 package com.fitterapp.personal.service.service;
 
+import com.fitterapp.personal.entity.service.ServiceMode;
 import java.util.List;
 import java.util.UUID;
 
-import com.fitterapp.personal.entity.service.ServiceMode;
-
 public record UpdateProfileServiceModesCommand(
-        UUID userId,
-        UUID profileId,
-        List<ServiceMode> serviceModes) {
-}
+    UUID userId, UUID profileId, List<ServiceMode> serviceModes) {}

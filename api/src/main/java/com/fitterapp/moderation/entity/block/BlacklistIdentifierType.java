@@ -1,8 +1,8 @@
 package com.fitterapp.moderation.entity.block;
 
 public enum BlacklistIdentifierType {
-    EMAIL,
-    PHONE,
-    CREF,
-    CNPJ
+  EMAIL,
+  PHONE,
+  CREF,
+  CNPJ
 }

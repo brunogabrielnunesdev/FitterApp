@@ -8,62 +8,65 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fitterapp.auth.exception.InvalidCredentialsException;
+import com.fitterapp.auth.mapper.AuthMapper;
+import com.fitterapp.auth.service.emailconfirm.ConfirmEmailService;
+import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
+import com.fitterapp.auth.service.login.LoginCommand;
+import com.fitterapp.auth.service.login.LoginResult;
+import com.fitterapp.auth.service.login.LoginService;
+import com.fitterapp.auth.service.register.RegisterCommand;
+import com.fitterapp.auth.service.register.RegisterResult;
+import com.fitterapp.auth.service.register.RegisterService;
+import com.fitterapp.common.exception.GlobalExceptionHandler;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fitterapp.auth.exception.InvalidCredentialsException;
-import com.fitterapp.auth.mapper.AuthMapper;
-import com.fitterapp.auth.service.emailconfirm.ConfirmEmailService;
-import com.fitterapp.auth.service.login.LoginService;
-import com.fitterapp.auth.service.register.RegisterService;
-import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
-import com.fitterapp.auth.service.login.LoginCommand;
-import com.fitterapp.auth.service.login.LoginResult;
-import com.fitterapp.auth.service.register.RegisterCommand;
-import com.fitterapp.auth.service.register.RegisterResult;
-import com.fitterapp.common.exception.GlobalExceptionHandler;
-
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTests {
 
-    @Mock private RegisterService registerService;
-    @Mock private LoginService loginService;
-    @Mock private ConfirmEmailService confirmEmailService;
-    @Mock private ResendConfirmationService resendConfirmationService;
+  @Mock private RegisterService registerService;
+  @Mock private LoginService loginService;
+  @Mock private ConfirmEmailService confirmEmailService;
+  @Mock private ResendConfirmationService resendConfirmationService;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp() {
-        AuthController controller = new AuthController(
-                registerService,
-                loginService,
-                confirmEmailService,
-                resendConfirmationService,
-                Mappers.getMapper(AuthMapper.class));
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .build();
-    }
+  @BeforeEach
+  void setUp() {
+    AuthController controller =
+        new AuthController(
+            registerService,
+            loginService,
+            confirmEmailService,
+            resendConfirmationService,
+            Mappers.getMapper(AuthMapper.class));
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(controller)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+  }
 
-    @Test
-    void registersUserAndReturnsCreated() throws Exception {
-        UUID userId = UUID.randomUUID();
-        when(registerService.register(any())).thenReturn(new RegisterResult(userId));
+  @Test
+  void registersUserAndReturnsCreated() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(registerService.register(any())).thenReturn(new RegisterResult(userId));
 
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+    mockMvc
+        .perform(
+            post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
                                 {
                                   "fullName": "Bruno Gabriel",
                                   "email": "bruno@fitterapp.com",
@@ -71,82 +74,97 @@ class AuthControllerTests {
                                   "password": "StrongPassword123!"
                                 }
                                 """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(userId.toString()));
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.userId").value(userId.toString()));
 
-        verify(registerService).register(new RegisterCommand(
+    verify(registerService)
+        .register(
+            new RegisterCommand(
                 "Bruno Gabriel", "bruno@fitterapp.com", "+5544999999999", "StrongPassword123!"));
-    }
+  }
 
-    @Test
-    void logsInAndReturnsBearerTokens() throws Exception {
-        when(loginService.login(any())).thenReturn(new LoginResult("access", "refresh", 900));
+  @Test
+  void logsInAndReturnsBearerTokens() throws Exception {
+    when(loginService.login(any())).thenReturn(new LoginResult("access", "refresh", 900));
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .header("User-Agent", "FitterApp/1.0")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+    mockMvc
+        .perform(
+            post("/api/v1/auth/login")
+                .header("User-Agent", "FitterApp/1.0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
                                 {"email":"bruno@fitterapp.com","password":"StrongPassword123!"}
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.accessToken").value("access"))
-                .andExpect(jsonPath("$.refreshToken").value("refresh"))
-                .andExpect(jsonPath("$.expiresInSeconds").value(900));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.tokenType").value("Bearer"))
+        .andExpect(jsonPath("$.accessToken").value("access"))
+        .andExpect(jsonPath("$.refreshToken").value("refresh"))
+        .andExpect(jsonPath("$.expiresInSeconds").value(900));
 
-        ArgumentCaptor<LoginCommand> commandCaptor = ArgumentCaptor.forClass(LoginCommand.class);
-        verify(loginService).login(commandCaptor.capture());
-        assertThat(commandCaptor.getValue().userAgent()).isEqualTo("FitterApp/1.0");
-        assertThat(commandCaptor.getValue().ipAddress()).isNotNull();
-    }
+    ArgumentCaptor<LoginCommand> commandCaptor = ArgumentCaptor.forClass(LoginCommand.class);
+    verify(loginService).login(commandCaptor.capture());
+    assertThat(commandCaptor.getValue().userAgent()).isEqualTo("FitterApp/1.0");
+    assertThat(commandCaptor.getValue().ipAddress()).isNotNull();
+  }
 
-    @Test
-    void returnsStandardProblemForInvalidCredentials() throws Exception {
-        when(loginService.login(any())).thenThrow(new InvalidCredentialsException());
+  @Test
+  void returnsStandardProblemForInvalidCredentials() throws Exception {
+    when(loginService.login(any())).thenThrow(new InvalidCredentialsException());
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+    mockMvc
+        .perform(
+            post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
                                 {"email":"bruno@fitterapp.com","password":"wrong-password"}
                                 """))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
-                .andExpect(jsonPath("$.detail").value("Invalid email or password"));
-    }
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
+        .andExpect(jsonPath("$.detail").value("Invalid email or password"));
+  }
 
-    @Test
-    void rejectsInvalidRegisterFieldsWithFieldErrors() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+  @Test
+  void rejectsInvalidRegisterFieldsWithFieldErrors() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
                                 {"fullName":"","email":"invalid","phoneNumber":"449999","password":"123"}
                                 """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.errors.fullName").exists())
-                .andExpect(jsonPath("$.errors.email").exists())
-                .andExpect(jsonPath("$.errors.phoneNumber").exists())
-                .andExpect(jsonPath("$.errors.password").exists());
-    }
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+        .andExpect(jsonPath("$.errors.fullName").exists())
+        .andExpect(jsonPath("$.errors.email").exists())
+        .andExpect(jsonPath("$.errors.phoneNumber").exists())
+        .andExpect(jsonPath("$.errors.password").exists());
+  }
 
-    @Test
-    void confirmsEmail() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/email/confirm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"token\":\"raw-token\"}"))
-                .andExpect(status().isNoContent());
+  @Test
+  void confirmsEmail() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/auth/email/confirm")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"raw-token\"}"))
+        .andExpect(status().isNoContent());
 
-        verify(confirmEmailService).confirm("raw-token");
-    }
+    verify(confirmEmailService).confirm("raw-token");
+  }
 
-    @Test
-    void acceptsConfirmationResendWithNeutralResponse() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/email/resend")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"bruno@fitterapp.com\"}"))
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$").doesNotExist());
+  @Test
+  void acceptsConfirmationResendWithNeutralResponse() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/auth/email/resend")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"bruno@fitterapp.com\"}"))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$").doesNotExist());
 
-        verify(resendConfirmationService).resend("bruno@fitterapp.com");
-    }
+    verify(resendConfirmationService).resend("bruno@fitterapp.com");
+  }
 }
