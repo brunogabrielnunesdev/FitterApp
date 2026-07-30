@@ -11,9 +11,6 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
-  mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
 
 fitterapp:
   cors:
@@ -23,5 +20,7 @@ fitterapp:
     issuer: ${JWT_ISSUER:fitterapp-api}
     access-token-duration: ${JWT_ACCESS_TOKEN_DURATION:15m}
   email:
-    from: ${MAIL_FROM:no-reply@fitterapp.local}
+    from: ${RESEND_FROM:onboarding@resend.dev}
     confirmation-url: ${EMAIL_CONFIRMATION_URL:http://localhost:5173/confirmar-email}
+  resend:
+    api-key: ${RESEND_API_KEY:}
