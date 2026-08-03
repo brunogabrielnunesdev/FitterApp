@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
 import { useFonts } from 'expo-font';
-import { Href, router } from 'expo-router';
+import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -28,6 +28,7 @@ import { LoginForm, loginSchema } from '@/features/auth/validation/loginSchema';
 
 export function LoginScreen() {
   const { startSession } = useAuth();
+  const { registered } = useLocalSearchParams<{ registered?: string }>();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
@@ -91,6 +92,11 @@ export function LoginScreen() {
           </View>
 
           <View style={styles.formCard}>
+            {registered === 'true' && (
+              <View style={styles.successBox}>
+                <Text style={styles.successText}>Conta criada. Agora é só entrar.</Text>
+              </View>
+            )}
             <Controller
               control={control}
               name="email"
@@ -256,6 +262,20 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: colors.danger,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  successBox: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(201, 255, 74, 0.35)',
+    backgroundColor: 'rgba(201, 255, 74, 0.08)',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  successText: {
+    color: colors.lime,
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,
     lineHeight: 19,

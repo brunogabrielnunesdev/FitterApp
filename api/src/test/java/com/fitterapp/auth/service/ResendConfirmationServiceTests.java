@@ -9,6 +9,7 @@ import com.fitterapp.auth.repository.EmailVerificationTokenRepository;
 import com.fitterapp.auth.security.TokenGenerator;
 import com.fitterapp.auth.security.TokenHasher;
 import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
+import com.fitterapp.auth.service.verification.EmailVerificationPolicy;
 import com.fitterapp.auth.service.verification.VerificationEmailRequested;
 import com.fitterapp.user.entity.User;
 import com.fitterapp.user.repository.UserRepository;
@@ -39,6 +40,8 @@ class ResendConfirmationServiceTests {
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
+  @Mock private EmailVerificationPolicy emailVerificationPolicy;
+
   private ResendConfirmationService service;
 
   @BeforeEach
@@ -50,12 +53,14 @@ class ResendConfirmationServiceTests {
             tokenGenerator,
             tokenHasher,
             eventPublisher,
-            Clock.fixed(NOW, ZoneOffset.UTC));
+            Clock.fixed(NOW, ZoneOffset.UTC),
+            emailVerificationPolicy);
   }
 
   @Test
   void invalidatesPreviousTokenAndSendsANewOne() {
     OffsetDateTime createdAt = OffsetDateTime.ofInstant(NOW, ZoneOffset.UTC);
+    when(emailVerificationPolicy.isRequired()).thenReturn(true);
     User user =
         User.pendingRegistration(
             "Bruno Gabriel",
@@ -79,10 +84,22 @@ class ResendConfirmationServiceTests {
 
   @Test
   void keepsNeutralBehaviorForUnknownEmail() {
+    when(emailVerificationPolicy.isRequired()).thenReturn(true);
     when(userRepository.findByEmail("unknown@fitterapp.com")).thenReturn(Optional.empty());
 
     service.resend("unknown@fitterapp.com");
 
+    verify(tokenRepository, never()).save(any());
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  void keepsNeutralBehaviorWhenVerificationIsDisabled() {
+    when(emailVerificationPolicy.isRequired()).thenReturn(false);
+
+    service.resend("bruno@fitterapp.com");
+
+    verify(userRepository, never()).findByEmail(any());
     verify(tokenRepository, never()).save(any());
     verify(eventPublisher, never()).publishEvent(any());
   }

@@ -4,6 +4,7 @@ import com.fitterapp.auth.entity.EmailVerificationToken;
 import com.fitterapp.auth.repository.EmailVerificationTokenRepository;
 import com.fitterapp.auth.security.TokenGenerator;
 import com.fitterapp.auth.security.TokenHasher;
+import com.fitterapp.auth.service.verification.EmailVerificationPolicy;
 import com.fitterapp.auth.service.verification.VerificationEmailRequested;
 import com.fitterapp.user.entity.User;
 import com.fitterapp.user.entity.UserStatus;
@@ -29,9 +30,14 @@ public class ResendConfirmationService {
   private final TokenHasher tokenHasher;
   private final ApplicationEventPublisher eventPublisher;
   private final Clock clock;
+  private final EmailVerificationPolicy emailVerificationPolicy;
 
   @Transactional
   public void resend(String email) {
+    if (!emailVerificationPolicy.isRequired()) {
+      return;
+    }
+
     userRepository
         .findByEmail(normalizeEmail(email))
         .filter(user -> user.getStatus() == UserStatus.PENDING_VERIFICATION)

@@ -22,5 +22,6 @@ fitterapp:
   email:
     from: ${RESEND_FROM:onboarding@resend.dev}
     confirmation-url: ${EMAIL_CONFIRMATION_URL:http://localhost:5173/confirmar-email}
+    verification-required: ${EMAIL_VERIFICATION_REQUIRED:true}
   resend:
     api-key: ${RESEND_API_KEY:}

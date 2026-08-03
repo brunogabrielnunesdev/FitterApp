@@ -6,6 +6,7 @@ import com.fitterapp.auth.exception.RoleNotConfiguredException;
 import com.fitterapp.auth.repository.EmailVerificationTokenRepository;
 import com.fitterapp.auth.security.TokenGenerator;
 import com.fitterapp.auth.security.TokenHasher;
+import com.fitterapp.auth.service.verification.EmailVerificationPolicy;
 import com.fitterapp.auth.service.verification.VerificationEmailRequested;
 import com.fitterapp.user.entity.Role;
 import com.fitterapp.user.entity.RoleName;
@@ -39,6 +40,7 @@ public class RegisterService {
   private final TokenHasher tokenHasher;
   private final ApplicationEventPublisher eventPublisher;
   private final Clock clock;
+  private final EmailVerificationPolicy emailVerificationPolicy;
 
   @Transactional
   public RegisterResult register(RegisterCommand command) {
@@ -62,6 +64,11 @@ public class RegisterService {
             now);
     userRepository.save(user);
     userRoleRepository.save(UserRole.grantedBySystem(user, studentRole, now));
+
+    if (!emailVerificationPolicy.isRequired()) {
+      user.confirmEmail(now);
+      return new RegisterResult(user.getId());
+    }
 
     String rawVerificationToken = tokenGenerator.generate();
     EmailVerificationToken verificationToken =

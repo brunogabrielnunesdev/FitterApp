@@ -16,6 +16,7 @@ import com.fitterapp.auth.security.TokenHasher;
 import com.fitterapp.auth.service.register.RegisterCommand;
 import com.fitterapp.auth.service.register.RegisterResult;
 import com.fitterapp.auth.service.register.RegisterService;
+import com.fitterapp.auth.service.verification.EmailVerificationPolicy;
 import com.fitterapp.auth.service.verification.VerificationEmailRequested;
 import com.fitterapp.user.entity.Role;
 import com.fitterapp.user.entity.RoleName;
@@ -61,6 +62,8 @@ class RegisterServiceTests {
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
+  @Mock private EmailVerificationPolicy emailVerificationPolicy;
+
   @Mock private Role studentRole;
 
   private RegisterService registerService;
@@ -78,12 +81,14 @@ class RegisterServiceTests {
             tokenGenerator,
             tokenHasher,
             eventPublisher,
-            clock);
+            clock,
+            emailVerificationPolicy);
   }
 
   @Test
   void registersPendingStudentAndIssuesVerificationToken() {
     UUID generatedUserId = UUID.randomUUID();
+    when(emailVerificationPolicy.isRequired()).thenReturn(true);
     when(userRepository.existsByEmail("student@fitterapp.com")).thenReturn(false);
     when(roleRepository.findByName(RoleName.STUDENT)).thenReturn(Optional.of(studentRole));
     when(studentRole.getId()).thenReturn((short) 1);
@@ -160,6 +165,37 @@ class RegisterServiceTests {
     verify(verificationTokenRepository, never()).save(any());
     verify(eventPublisher, never()).publishEvent(any());
     verify(passwordEncoder, never()).encode(any());
+  }
+
+  @Test
+  void activatesAccountWithoutIssuingVerificationTokenWhenVerificationIsDisabled() {
+    UUID generatedUserId = UUID.randomUUID();
+    when(emailVerificationPolicy.isRequired()).thenReturn(false);
+    when(userRepository.existsByEmail("student@fitterapp.com")).thenReturn(false);
+    when(roleRepository.findByName(RoleName.STUDENT)).thenReturn(Optional.of(studentRole));
+    when(userRepository.save(any(User.class)))
+        .thenAnswer(
+            invocation -> {
+              User savedUser = invocation.getArgument(0);
+              ReflectionTestUtils.setField(savedUser, "id", generatedUserId);
+              return savedUser;
+            });
+    when(passwordEncoder.encode("StrongPassword123!")).thenReturn("encoded-password");
+
+    RegisterResult result =
+        registerService.register(
+            new RegisterCommand(
+                "Bruno Gabriel", "student@fitterapp.com", "+5544999999999", "StrongPassword123!"));
+
+    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    verify(userRepository).save(userCaptor.capture());
+
+    assertThat(userCaptor.getValue().getStatus()).isEqualTo(UserStatus.ACTIVE);
+    assertThat(userCaptor.getValue().getEmailVerifiedAt().toInstant()).isEqualTo(NOW);
+    assertThat(result.userId()).isEqualTo(generatedUserId);
+    verify(verificationTokenRepository, never()).save(any());
+    verify(eventPublisher, never()).publishEvent(any());
+    verify(tokenGenerator, never()).generate();
   }
 
   @Test

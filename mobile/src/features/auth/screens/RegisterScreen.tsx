@@ -18,6 +18,9 @@ import {
   registerSchema,
 } from '@/features/auth/validation/registerSchema';
 
+const emailVerificationRequired =
+  process.env.EXPO_PUBLIC_EMAIL_VERIFICATION_REQUIRED === 'true';
+
 export function RegisterScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const {
@@ -36,15 +39,25 @@ export function RegisterScreen() {
   });
   const mutation = useMutation({
     mutationFn: register,
-    onSuccess: (_, request) =>
-      router.replace(`/confirm-email?email=${encodeURIComponent(request.email)}` as Href),
+    onSuccess: (_, request) => {
+      if (emailVerificationRequired) {
+        router.replace(`/confirm-email?email=${encodeURIComponent(request.email)}` as Href);
+        return;
+      }
+
+      router.replace('/login?registered=true' as Href);
+    },
   });
 
   return (
     <AuthScreen
       eyebrow="CRIE SUA CONTA"
       title="Comece sua evolução."
-      subtitle="Seu cadastro leva menos de um minuto. Depois, confirme seu e-mail para entrar."
+      subtitle={
+        emailVerificationRequired
+          ? 'Seu cadastro leva menos de um minuto. Depois, confirme seu e-mail para entrar.'
+          : 'Seu cadastro leva menos de um minuto. Depois, entre com seu e-mail e senha.'
+      }
       footer={
         <Pressable onPress={() => router.replace('/')}>
           <Text style={authScreenStyles.footer}>
