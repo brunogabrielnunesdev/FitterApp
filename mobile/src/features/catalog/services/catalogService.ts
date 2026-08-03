@@ -1,8 +1,9 @@
 import { api } from '@/common/services/api';
 import {
-  PublicProfileCard,
+  PublicProfileDetail,
   PublicProfilePage,
   PublicProfilesQuery,
+  WhatsappContact,
 } from '@/features/catalog/types/catalog';
 
 export async function listPublicProfiles({
@@ -18,6 +19,13 @@ export async function listPublicProfiles({
 }
 
 export async function getPublicProfile(slug: string) {
-  const { data } = await api.get<PublicProfileCard>(`/api/v1/public/personals/${slug}`);
+  const { data } = await api.get<PublicProfileDetail>(`/api/v1/public/personals/${slug}`);
+  return data;
+}
+
+export async function startWhatsappContact(slug: string) {
+  const { data } = await api.post<WhatsappContact>(
+    `/api/v1/public/personals/${slug}/contact/whatsapp`,
+  );
   return data;
 }

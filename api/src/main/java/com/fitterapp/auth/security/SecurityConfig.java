@@ -31,6 +31,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/public/personals/*/contact/whatsapp")
+                    .permitAll()
                     .requestMatchers("/actuator/health", "/error")
                     .permitAll()
                     .requestMatchers("/api/v1/admin/**")

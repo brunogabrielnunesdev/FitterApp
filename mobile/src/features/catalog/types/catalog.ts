@@ -18,6 +18,22 @@ export type PublicProfilePage = {
   totalPages: number;
 };
 
+export type PublicProfileDetail = PublicProfileCard & {
+  experienceStartedYear: number | null;
+  certifications: string | null;
+  gymsDescription: string | null;
+  modalities: { id: number; name: string; slug: string }[];
+  serviceModes: ServiceMode[];
+  serviceAreas: {
+    city: string;
+    stateCode: string;
+    neighborhood: string | null;
+    description: string | null;
+  }[];
+};
+
+export type WhatsappContact = { whatsappUrl: string };
+
 export type PublicProfilesQuery = {
   page: number;
   size: number;

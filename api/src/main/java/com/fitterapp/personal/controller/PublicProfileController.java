@@ -3,11 +3,16 @@ package com.fitterapp.personal.controller;
 import com.fitterapp.personal.dto.publicprofile.*;
 import com.fitterapp.personal.entity.service.ServiceMode;
 import com.fitterapp.personal.mapper.PublicProfileMapper;
+import com.fitterapp.personal.service.contact.StartWhatsappContactCommand;
+import com.fitterapp.personal.service.contact.StartWhatsappContactService;
 import com.fitterapp.personal.service.publicprofile.*;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class PublicProfileController {
   private final ListPublicProfilesService listService;
   private final GetPublicProfileService getService;
+  private final StartWhatsappContactService contactService;
   private final PublicProfileMapper mapper;
 
   @GetMapping
@@ -38,7 +44,18 @@ public class PublicProfileController {
   }
 
   @GetMapping("/{slug}")
-  public ResponseEntity<PublicProfileCardDto> get(@PathVariable String slug) {
-    return ResponseEntity.ok(mapper.toCard(getService.get(slug)));
+  public ResponseEntity<PublicProfileDetailDto> get(@PathVariable String slug) {
+    return ResponseEntity.ok(mapper.toDetail(getService.get(slug)));
+  }
+
+  @PostMapping("/{slug}/contact/whatsapp")
+  public ResponseEntity<WhatsappContactResponseDto> startWhatsappContact(
+      @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) {
+    var result = contactService.start(new StartWhatsappContactCommand(slug, userId(jwt)));
+    return ResponseEntity.ok(new WhatsappContactResponseDto(result.whatsappUrl()));
+  }
+
+  private UUID userId(Jwt jwt) {
+    return jwt == null ? null : UUID.fromString(jwt.getSubject());
   }
 }
