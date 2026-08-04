@@ -113,6 +113,26 @@ public class ProfileRevision {
     return revision;
   }
 
+  public static ProfileRevision draftFrom(
+      Profile personal,
+      int versionNumber,
+      User createdBy,
+      ProfileRevision source,
+      OffsetDateTime createdAt) {
+    ProfileRevision revision = draft(personal, versionNumber, createdBy, true, createdAt);
+    revision.fullName = source.fullName;
+    revision.biography = source.biography;
+    revision.whatsapp = source.whatsapp;
+    revision.profileImageKey = source.profileImageKey;
+    revision.experienceStartedYear = source.experienceStartedYear;
+    revision.certifications = source.certifications;
+    revision.gymsDescription = source.gymsDescription;
+    revision.startingPriceCents = source.startingPriceCents;
+    revision.priceUnit = source.priceUnit;
+    revision.cref = source.cref;
+    return revision;
+  }
+
   public void updateProfessionalData(
       String fullName,
       String biography,

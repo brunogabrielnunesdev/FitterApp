@@ -41,6 +41,8 @@ export type OwnProfileStatus = {
   profileStatus: ProfileStatus;
   revisionStatus: string | null;
   rejectionReason: string | null;
+  published: boolean;
+  publishedRevisionId: string | null;
 };
 
 export async function getOwnProfile() {
@@ -96,4 +98,8 @@ export async function publishProfile(profileId: string) {
 
 export async function unpublishProfile(profileId: string) {
   await api.delete(`/api/v1/me/personal-profile/${profileId}/publication`);
+}
+
+export async function startProfileRevision(profileId: string) {
+  await api.post(`/api/v1/me/personal-profile/${profileId}/revisions`);
 }

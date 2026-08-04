@@ -137,17 +137,17 @@ public class Profile {
   }
 
   public void submitForReview(OffsetDateTime submittedAt) {
-    status = ProfileStatus.PENDING_REVIEW;
+    if (publishedRevision == null) status = ProfileStatus.PENDING_REVIEW;
     updatedAt = submittedAt;
   }
 
   public void approve(OffsetDateTime approvedAt) {
-    status = ProfileStatus.APPROVED;
+    if (publishedRevision == null) status = ProfileStatus.APPROVED;
     updatedAt = approvedAt;
   }
 
   public void reject(OffsetDateTime rejectedAt) {
-    status = ProfileStatus.REJECTED;
+    if (publishedRevision == null) status = ProfileStatus.REJECTED;
     updatedAt = rejectedAt;
   }
 
@@ -169,5 +169,9 @@ public class Profile {
   public void suspend(OffsetDateTime suspendedAt) {
     status = ProfileStatus.SUSPENDED;
     updatedAt = suspendedAt;
+  }
+
+  public boolean isPublished() {
+    return publishedRevision != null;
   }
 }

@@ -17,6 +17,7 @@ import {
   publishProfile,
   ServiceArea,
   submitProfile,
+  startProfileRevision,
   updateCref,
   updateProfileDraft,
   updateProfileModalities,
@@ -103,11 +104,13 @@ export default function PersonalProfileScreen() {
   if (
     status.data &&
     status.data.profileStatus !== 'DRAFT' &&
-    !(status.data.profileStatus === 'REJECTED' && editingRejected)
+    status.data.revisionStatus !== 'DRAFT' &&
+    !(status.data.revisionStatus === 'REJECTED' && editingRejected)
   ) {
     return (
       <ProfileStatusView
         profile={status.data}
+        currentRevisionId={profile.revisionId}
         onEditRejected={() => setEditingRejected(true)}
         onRefresh={async () => {
           await Promise.all([status.refetch(), draft.refetch()]);
@@ -263,20 +266,39 @@ const statusContent = {
 
 function ProfileStatusView({
   profile,
+  currentRevisionId,
   onEditRejected,
   onRefresh,
 }: {
   profile: OwnProfileStatus;
+  currentRevisionId: string;
   onEditRejected: () => void;
   onRefresh: () => Promise<void>;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const content = statusContent[profile.profileStatus as keyof typeof statusContent];
+  const hasNewApprovedRevision =
+    profile.revisionStatus === 'APPROVED' &&
+    profile.published &&
+    currentRevisionId !== profile.publishedRevisionId;
+  const displayStatus =
+    profile.profileStatus === 'SUSPENDED'
+      ? 'SUSPENDED'
+      : profile.revisionStatus === 'PENDING_REVIEW' || profile.revisionStatus === 'REJECTED'
+        ? profile.revisionStatus
+        : hasNewApprovedRevision
+          ? 'APPROVED'
+          : profile.profileStatus;
+  const content = statusContent[displayStatus as keyof typeof statusContent];
   const publication = useMutation({
     mutationFn: () =>
-      profile.profileStatus === 'PUBLISHED'
+      displayStatus === 'PUBLISHED'
         ? unpublishProfile(profile.profileId)
         : publishProfile(profile.profileId),
+    onSuccess: onRefresh,
+    onError: (mutationError) => setError(getErrorMessage(mutationError)),
+  });
+  const revision = useMutation({
+    mutationFn: () => startProfileRevision(profile.profileId),
     onSuccess: onRefresh,
     onError: (mutationError) => setError(getErrorMessage(mutationError)),
   });
@@ -287,25 +309,29 @@ function ProfileStatusView({
       <ScrollView contentContainerStyle={[styles.content, styles.statusContent]}>
         <Pressable onPress={() => router.back()}><Text style={styles.back}>‹ Voltar</Text></Pressable>
         <View style={styles.statusCard}>
-          <View style={styles.statusIcon}><Text style={styles.statusIconText}>{profile.profileStatus === 'PUBLISHED' ? '✓' : '●'}</Text></View>
+          <View style={styles.statusIcon}><Text style={styles.statusIconText}>{displayStatus === 'PUBLISHED' ? '✓' : '●'}</Text></View>
           <Text style={styles.kicker}>{content.eyebrow}</Text>
           <Text style={styles.title}>{content.title}</Text>
           {profile.fullName && <Text style={styles.profileName}>{profile.fullName}</Text>}
           <Text style={styles.text}>{content.message}</Text>
-          {profile.profileStatus === 'REJECTED' && profile.rejectionReason && (
+          {displayStatus === 'REJECTED' && profile.rejectionReason && (
             <ErrorBanner message={`Motivo: ${profile.rejectionReason}`} />
           )}
           {error && <ErrorBanner message={error} />}
-          {profile.profileStatus === 'APPROVED' && (
+          {displayStatus === 'APPROVED' && (
             <PrimaryButton label="Publicar meu perfil" loading={publication.isPending} onPress={() => { setError(null); publication.mutate(); }} />
           )}
-          {profile.profileStatus === 'PUBLISHED' && (
+          {displayStatus === 'PUBLISHED' && (
             <>
               <PrimaryButton label="Ver catálogo" onPress={() => router.push('/catalog')} />
+              <PrimaryButton variant="secondary" label="Editar perfil" loading={revision.isPending} onPress={() => { setError(null); revision.mutate(); }} />
               <PrimaryButton variant="secondary" label="Despublicar perfil" loading={publication.isPending} onPress={() => { setError(null); publication.mutate(); }} />
             </>
           )}
-          {profile.profileStatus === 'REJECTED' && (
+          {displayStatus === 'APPROVED' && !profile.published && (
+            <PrimaryButton variant="secondary" label="Editar antes de publicar" loading={revision.isPending} onPress={() => { setError(null); revision.mutate(); }} />
+          )}
+          {displayStatus === 'REJECTED' && (
             <PrimaryButton label="Corrigir meu perfil" onPress={onEditRejected} />
           )}
           <PrimaryButton variant="secondary" label="Atualizar status" onPress={() => { setError(null); void onRefresh(); }} />

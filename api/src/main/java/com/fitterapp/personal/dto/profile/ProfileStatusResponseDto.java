@@ -9,4 +9,6 @@ public record ProfileStatusResponseDto(
     String fullName,
     ProfileStatus profileStatus,
     ProfileRevisionStatus revisionStatus,
-    String rejectionReason) {}
+    String rejectionReason,
+    boolean published,
+    UUID publishedRevisionId) {}

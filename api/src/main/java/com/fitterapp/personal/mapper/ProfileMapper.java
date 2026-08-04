@@ -77,6 +77,8 @@ public class ProfileMapper {
         profile.getFullName(),
         profile.getStatus(),
         revision == null ? null : revision.getStatus(),
-        revision == null ? null : revision.getRejectionReason());
+        revision == null ? null : revision.getRejectionReason(),
+        profile.isPublished(),
+        profile.getPublishedRevision() == null ? null : profile.getPublishedRevision().getId());
   }
 }

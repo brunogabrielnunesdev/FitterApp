@@ -18,6 +18,8 @@ import com.fitterapp.personal.service.publication.PublishProfileCommand;
 import com.fitterapp.personal.service.publication.UnpublishProfileCommand;
 import com.fitterapp.personal.service.query.GetOwnProfileDraftService;
 import com.fitterapp.personal.service.query.GetOwnProfileService;
+import com.fitterapp.personal.service.revision.StartProfileRevisionCommand;
+import com.fitterapp.personal.service.revision.StartProfileRevisionService;
 import com.fitterapp.personal.service.service.UpdateProfileServiceAreasService;
 import com.fitterapp.personal.service.service.UpdateProfileServiceModesService;
 import com.fitterapp.personal.service.submission.SubmitProfileForReviewCommand;
@@ -55,6 +57,7 @@ public class ProfileController {
   private final ProfilePublicationService profilePublicationService;
   private final GetOwnProfileService getOwnProfileService;
   private final GetOwnProfileDraftService getOwnProfileDraftService;
+  private final StartProfileRevisionService startProfileRevisionService;
 
   @GetMapping
   public ResponseEntity<ProfileStatusResponseDto> getOwnProfile(@AuthenticationPrincipal Jwt jwt) {
@@ -130,6 +133,16 @@ public class ProfileController {
       @AuthenticationPrincipal Jwt jwt, @PathVariable UUID profileId) {
     submitProfileForReviewService.submit(new SubmitProfileForReviewCommand(userId(jwt), profileId));
     return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/{profileId}/revisions")
+  public ResponseEntity<ProfileActionResponseDto> startRevision(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID profileId) {
+    var result =
+        startProfileRevisionService.start(
+            new StartProfileRevisionCommand(userId(jwt), profileId));
+    return ResponseEntity.ok(
+        new ProfileActionResponseDto(result.profileId(), result.revisionId()));
   }
 
   @PostMapping("/{profileId}/publication")
