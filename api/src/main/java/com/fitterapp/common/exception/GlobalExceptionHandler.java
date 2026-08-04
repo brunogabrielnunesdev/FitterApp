@@ -5,6 +5,8 @@ import com.fitterapp.auth.exception.AccountNotPendingVerificationException;
 import com.fitterapp.auth.exception.EmailAlreadyRegisteredException;
 import com.fitterapp.auth.exception.EmailNotVerifiedException;
 import com.fitterapp.auth.exception.InvalidCredentialsException;
+import com.fitterapp.auth.exception.InvalidRefreshTokenException;
+import com.fitterapp.auth.exception.InvalidPasswordResetTokenException;
 import com.fitterapp.auth.exception.InvalidVerificationTokenException;
 import com.fitterapp.auth.exception.RoleNotConfiguredException;
 import com.fitterapp.auth.exception.VerificationTokenAlreadyUsedException;
@@ -82,6 +84,17 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidCredentialsException.class)
   ResponseEntity<ProblemDetail> handleInvalidCredentials(InvalidCredentialsException exception) {
     return problem(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", exception.getMessage());
+  }
+
+  @ExceptionHandler(InvalidRefreshTokenException.class)
+  ResponseEntity<ProblemDetail> handleInvalidRefreshToken(InvalidRefreshTokenException exception) {
+    return problem(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", exception.getMessage());
+  }
+
+  @ExceptionHandler(InvalidPasswordResetTokenException.class)
+  ResponseEntity<ProblemDetail> handleInvalidPasswordResetToken(
+      InvalidPasswordResetTokenException exception) {
+    return problem(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD_RESET_TOKEN", exception.getMessage());
   }
 
   @ExceptionHandler(EmailNotVerifiedException.class)

@@ -41,4 +41,26 @@ public class PasswordResetToken {
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
+
+  public static PasswordResetToken issue(
+      User user, String tokenHash, OffsetDateTime createdAt, OffsetDateTime expiresAt) {
+    PasswordResetToken token = new PasswordResetToken();
+    token.user = user;
+    token.tokenHash = tokenHash;
+    token.createdAt = createdAt;
+    token.expiresAt = expiresAt;
+    return token;
+  }
+
+  public boolean isUsed() {
+    return usedAt != null;
+  }
+
+  public boolean isExpiredAt(OffsetDateTime timestamp) {
+    return !expiresAt.isAfter(timestamp);
+  }
+
+  public void markAsUsed(OffsetDateTime timestamp) {
+    usedAt = timestamp;
+  }
 }

@@ -11,6 +11,7 @@ import com.fitterapp.personal.service.cref.*;
 import com.fitterapp.personal.service.modality.*;
 import com.fitterapp.personal.service.publication.*;
 import com.fitterapp.personal.service.query.GetOwnProfileService;
+import com.fitterapp.personal.service.query.GetOwnProfileDraftService;
 import com.fitterapp.personal.service.service.*;
 import com.fitterapp.personal.service.submission.*;
 import com.fitterapp.personal.service.update.*;
@@ -33,6 +34,7 @@ class ProfileControllerTests {
   @Mock SubmitProfileForReviewService submission;
   @Mock ProfilePublicationService publication;
   @Mock GetOwnProfileService ownProfile;
+  @Mock GetOwnProfileDraftService ownProfileDraft;
 
   @Test
   void createsProfileForJwtSubject() {
@@ -55,7 +57,8 @@ class ProfileControllerTests {
         areas,
         submission,
         publication,
-        ownProfile);
+        ownProfile,
+        ownProfileDraft);
   }
 
   private Jwt jwt(UUID id) {

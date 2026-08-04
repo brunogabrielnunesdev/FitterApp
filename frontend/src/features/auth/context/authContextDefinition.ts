@@ -5,8 +5,9 @@ import type { LoginResponse } from '../types/auth'
 export type AuthContextValue = {
   email: string | null
   isAdmin: boolean
+  isLoading: boolean
   startSession: (session: LoginResponse) => boolean
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

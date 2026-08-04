@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { Logo } from '../../../common/components/Logo'
 import { useAuth } from '../context/useAuth'
@@ -146,6 +146,9 @@ export function AdminLoginPage() {
                   type="submit">
                   {loginMutation.isPending ? 'Entrando...' : 'Entrar no painel'}
                 </button>
+                <Link className="block text-center text-sm text-[#c7ff3d]" to="/forgot-password">
+                  Esqueci minha senha
+                </Link>
               </div>
             </form>
 

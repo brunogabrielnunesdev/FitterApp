@@ -19,7 +19,7 @@ export async function getSession(): Promise<StoredSession | null> {
 
   try {
     const session = JSON.parse(serializedSession) as StoredSession;
-    if (!session.accessToken || session.expiresAt <= Date.now()) {
+    if (!session.accessToken || !session.refreshToken) {
       await clearSession();
       return null;
     }

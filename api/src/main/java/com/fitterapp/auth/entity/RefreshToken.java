@@ -78,4 +78,22 @@ public class RefreshToken {
     token.ipAddress = ipAddress;
     return token;
   }
+
+  public boolean isExpiredAt(OffsetDateTime timestamp) {
+    return !expiresAt.isAfter(timestamp);
+  }
+
+  public boolean isRevoked() {
+    return revokedAt != null;
+  }
+
+  public void rotateTo(RefreshToken replacement, OffsetDateTime timestamp) {
+    lastUsedAt = timestamp;
+    revokedAt = timestamp;
+    replacedBy = replacement;
+  }
+
+  public void revoke(OffsetDateTime timestamp) {
+    if (revokedAt == null) revokedAt = timestamp;
+  }
 }

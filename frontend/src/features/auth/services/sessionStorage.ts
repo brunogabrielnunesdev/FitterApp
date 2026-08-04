@@ -19,6 +19,10 @@ export function getAccessToken() {
   return sessionStorage.getItem(ACCESS_TOKEN_KEY)
 }
 
+export function getRefreshToken() {
+  return sessionStorage.getItem(REFRESH_TOKEN_KEY)
+}
+
 export function getCurrentClaims() {
   const accessToken = getAccessToken()
   if (!accessToken) {
@@ -28,7 +32,6 @@ export function getCurrentClaims() {
   try {
     const claims = jwtDecode<AccessTokenClaims>(accessToken)
     if (claims.exp * 1_000 <= Date.now()) {
-      clearSession()
       return null
     }
     return claims
@@ -40,7 +43,8 @@ export function getCurrentClaims() {
 
 export function hasAdminRole(accessToken: string) {
   try {
-    return jwtDecode<AccessTokenClaims>(accessToken).roles?.includes('ADMIN') ?? false
+    const roles = jwtDecode<AccessTokenClaims>(accessToken).roles ?? []
+    return roles.includes('ADMIN') || roles.includes('OWNER')
   } catch {
     return false
   }

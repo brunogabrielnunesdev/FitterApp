@@ -153,6 +153,9 @@ export function LoginScreen() {
               loading={loginMutation.isPending}
               onPress={handleSubmit((form) => loginMutation.mutate(form))}
             />
+            <Pressable onPress={() => router.push('/forgot-password' as Href)}>
+              <Text style={styles.footerAccent}>Esqueci minha senha</Text>
+            </Pressable>
           </View>
 
           <Pressable onPress={() => router.push('/register' as Href)}>

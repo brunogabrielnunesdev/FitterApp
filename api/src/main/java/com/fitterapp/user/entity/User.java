@@ -73,4 +73,9 @@ public class User {
     status = UserStatus.BLOCKED;
     updatedAt = blockedAt;
   }
+
+  public void changePassword(String newPasswordHash, OffsetDateTime changedAt) {
+    passwordHash = newPasswordHash;
+    updatedAt = changedAt;
+  }
 }

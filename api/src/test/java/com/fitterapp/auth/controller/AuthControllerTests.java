@@ -15,6 +15,10 @@ import com.fitterapp.auth.service.emailconfirm.ResendConfirmationService;
 import com.fitterapp.auth.service.login.LoginCommand;
 import com.fitterapp.auth.service.login.LoginResult;
 import com.fitterapp.auth.service.login.LoginService;
+import com.fitterapp.auth.service.password.RequestPasswordResetService;
+import com.fitterapp.auth.service.password.ResetPasswordService;
+import com.fitterapp.auth.service.session.LogoutService;
+import com.fitterapp.auth.service.session.RefreshSessionService;
 import com.fitterapp.auth.service.register.RegisterCommand;
 import com.fitterapp.auth.service.register.RegisterResult;
 import com.fitterapp.auth.service.register.RegisterService;
@@ -38,6 +42,10 @@ class AuthControllerTests {
   @Mock private LoginService loginService;
   @Mock private ConfirmEmailService confirmEmailService;
   @Mock private ResendConfirmationService resendConfirmationService;
+  @Mock private RefreshSessionService refreshSessionService;
+  @Mock private LogoutService logoutService;
+  @Mock private RequestPasswordResetService requestPasswordResetService;
+  @Mock private ResetPasswordService resetPasswordService;
 
   private MockMvc mockMvc;
 
@@ -49,6 +57,10 @@ class AuthControllerTests {
             loginService,
             confirmEmailService,
             resendConfirmationService,
+            refreshSessionService,
+            logoutService,
+            requestPasswordResetService,
+            resetPasswordService,
             Mappers.getMapper(AuthMapper.class));
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
