@@ -9,9 +9,12 @@ import { PrimaryButton } from '@/common/components/button/PrimaryButton';
 import { colors } from '@/common/theme/colors';
 import {
   createPersonalProfile,
+  getOwnProfile,
   getProfileDraft,
   listModalities,
   ProfileDraft,
+  OwnProfileStatus,
+  publishProfile,
   ServiceArea,
   submitProfile,
   updateCref,
@@ -19,6 +22,7 @@ import {
   updateProfileModalities,
   updateServiceAreas,
   updateServiceModes,
+  unpublishProfile,
 } from '@/features/profile/services/profileService';
 
 const steps = ['Dados', 'CREF', 'Modalidades', 'Atendimento', 'Regiões', 'Revisão'];
@@ -36,6 +40,8 @@ export default function PersonalProfileScreen() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [requestError, setRequestError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [editingRejected, setEditingRejected] = useState(false);
+  const status = useQuery({ queryKey: ['own-profile-status'], queryFn: getOwnProfile, retry: false });
   const draft = useQuery({ queryKey: ['profile-draft'], queryFn: getProfileDraft, retry: false });
   const modalities = useQuery({ queryKey: ['modalities'], queryFn: listModalities });
   const create = useMutation({
@@ -66,14 +72,14 @@ export default function PersonalProfileScreen() {
     mutationFn: () => submitProfile(profile!.profileId),
     onSuccess: async () => {
       setSubmitted(true);
-      await draft.refetch();
+      await Promise.all([draft.refetch(), status.refetch()]);
     },
     onError: (error) => setRequestError(getErrorMessage(error)),
   });
 
   const missing = useMemo(() => (profile ? getMissingItems(profile) : []), [profile]);
 
-  if (draft.isLoading) return <CenteredMessage title="Carregando seu perfil..." />;
+  if (draft.isLoading || status.isLoading) return <CenteredMessage title="Carregando seu perfil..." />;
   if (!profile) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -91,6 +97,22 @@ export default function PersonalProfileScreen() {
           />
         </View>
       </SafeAreaView>
+    );
+  }
+
+  if (
+    status.data &&
+    status.data.profileStatus !== 'DRAFT' &&
+    !(status.data.profileStatus === 'REJECTED' && editingRejected)
+  ) {
+    return (
+      <ProfileStatusView
+        profile={status.data}
+        onEditRejected={() => setEditingRejected(true)}
+        onRefresh={async () => {
+          await Promise.all([status.refetch(), draft.refetch()]);
+        }}
+      />
     );
   }
 
@@ -211,6 +233,88 @@ export default function PersonalProfileScreen() {
   );
 }
 
+const statusContent = {
+  PENDING_REVIEW: {
+    eyebrow: 'EM ANÁLISE',
+    title: 'Seu perfil está com a nossa equipe.',
+    message: 'Os dados foram enviados e agora aguardam a revisão administrativa.',
+  },
+  APPROVED: {
+    eyebrow: 'PERFIL APROVADO',
+    title: 'Tudo pronto para aparecer no catálogo.',
+    message: 'Seu cadastro foi aprovado. Publique quando quiser deixá-lo visível para os alunos.',
+  },
+  PUBLISHED: {
+    eyebrow: 'PERFIL PUBLICADO',
+    title: 'Seu perfil está no catálogo.',
+    message: 'Alunos já podem encontrar seus dados e iniciar contato pelo WhatsApp.',
+  },
+  REJECTED: {
+    eyebrow: 'AJUSTES NECESSÁRIOS',
+    title: 'Seu perfil precisa de correções.',
+    message: 'Revise o motivo informado, corrija os dados e envie novamente para análise.',
+  },
+  SUSPENDED: {
+    eyebrow: 'PERFIL SUSPENSO',
+    title: 'Seu perfil não está disponível.',
+    message: 'A publicação foi suspensa pela administração. Entre em contato com o suporte para entender os próximos passos.',
+  },
+} as const;
+
+function ProfileStatusView({
+  profile,
+  onEditRejected,
+  onRefresh,
+}: {
+  profile: OwnProfileStatus;
+  onEditRejected: () => void;
+  onRefresh: () => Promise<void>;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const content = statusContent[profile.profileStatus as keyof typeof statusContent];
+  const publication = useMutation({
+    mutationFn: () =>
+      profile.profileStatus === 'PUBLISHED'
+        ? unpublishProfile(profile.profileId)
+        : publishProfile(profile.profileId),
+    onSuccess: onRefresh,
+    onError: (mutationError) => setError(getErrorMessage(mutationError)),
+  });
+
+  if (!content) return null;
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={[styles.content, styles.statusContent]}>
+        <Pressable onPress={() => router.back()}><Text style={styles.back}>‹ Voltar</Text></Pressable>
+        <View style={styles.statusCard}>
+          <View style={styles.statusIcon}><Text style={styles.statusIconText}>{profile.profileStatus === 'PUBLISHED' ? '✓' : '●'}</Text></View>
+          <Text style={styles.kicker}>{content.eyebrow}</Text>
+          <Text style={styles.title}>{content.title}</Text>
+          {profile.fullName && <Text style={styles.profileName}>{profile.fullName}</Text>}
+          <Text style={styles.text}>{content.message}</Text>
+          {profile.profileStatus === 'REJECTED' && profile.rejectionReason && (
+            <ErrorBanner message={`Motivo: ${profile.rejectionReason}`} />
+          )}
+          {error && <ErrorBanner message={error} />}
+          {profile.profileStatus === 'APPROVED' && (
+            <PrimaryButton label="Publicar meu perfil" loading={publication.isPending} onPress={() => { setError(null); publication.mutate(); }} />
+          )}
+          {profile.profileStatus === 'PUBLISHED' && (
+            <>
+              <PrimaryButton label="Ver catálogo" onPress={() => router.push('/catalog')} />
+              <PrimaryButton variant="secondary" label="Despublicar perfil" loading={publication.isPending} onPress={() => { setError(null); publication.mutate(); }} />
+            </>
+          )}
+          {profile.profileStatus === 'REJECTED' && (
+            <PrimaryButton label="Corrigir meu perfil" onPress={onEditRejected} />
+          )}
+          <PrimaryButton variant="secondary" label="Atualizar status" onPress={() => { setError(null); void onRefresh(); }} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 function ServiceAreasEditor({ areas, errors, onChange }: { areas: ServiceArea[]; errors: FieldErrors; onChange: (areas: ServiceArea[]) => void }) {
   const update = (index: number, changes: Partial<ServiceArea>) => onChange(areas.map((area, current) => current === index ? { ...area, ...changes } : area));
   return (
@@ -298,5 +402,5 @@ function getErrorMessage(error: unknown) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.black }, content: { gap: 16, padding: 24, paddingBottom: 48 }, centered: { flex: 1, justifyContent: 'center' }, back: { color: colors.lime, fontWeight: '700' }, kicker: { color: colors.lime, fontWeight: '800' }, title: { color: colors.warmWhite, fontSize: 34, fontWeight: '900' }, progress: { color: colors.gray }, steps: { flexDirection: 'row', gap: 6 }, dot: { backgroundColor: colors.line, height: 4, flex: 1, borderRadius: 4 }, dotActive: { backgroundColor: colors.lime }, text: { color: colors.gray, lineHeight: 22 }, hint: { color: colors.muted, fontSize: 12, lineHeight: 18 }, field: { gap: 6 }, label: { color: colors.warmWhite, fontWeight: '700' }, input: { minHeight: 52, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 12, color: colors.warmWhite, paddingHorizontal: 14, paddingVertical: 12 }, multiline: { minHeight: 100, textAlignVertical: 'top' }, inputError: { borderColor: colors.danger }, fieldError: { color: colors.danger, fontSize: 12 }, options: { gap: 10 }, option: { borderColor: colors.line, borderWidth: 1, borderRadius: 12, padding: 14 }, selected: { backgroundColor: colors.lime, borderColor: colors.lime }, optionText: { color: colors.warmWhite, fontWeight: '700' }, selectedText: { color: colors.black }, areaCard: { gap: 12, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 16 }, reviewCard: { gap: 8, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 16 }, sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }, sectionTitle: { color: colors.warmWhite, fontSize: 16, fontWeight: '800' }, edit: { color: colors.lime, fontWeight: '700' }, remove: { color: colors.danger, fontWeight: '700' }, errorBanner: { backgroundColor: '#2A1515', borderColor: colors.danger, borderWidth: 1, borderRadius: 12, padding: 12 }, errorText: { color: colors.danger, lineHeight: 20 },
+  safe: { flex: 1, backgroundColor: colors.black }, content: { gap: 16, padding: 24, paddingBottom: 48 }, centered: { flex: 1, justifyContent: 'center' }, statusContent: { flexGrow: 1, justifyContent: 'center' }, statusCard: { gap: 16, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 24, padding: 22 }, statusIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.lime }, statusIconText: { color: colors.black, fontSize: 22, fontWeight: '900' }, profileName: { color: colors.warmWhite, fontSize: 18, fontWeight: '800' }, back: { color: colors.lime, fontWeight: '700' }, kicker: { color: colors.lime, fontWeight: '800' }, title: { color: colors.warmWhite, fontSize: 34, fontWeight: '900' }, progress: { color: colors.gray }, steps: { flexDirection: 'row', gap: 6 }, dot: { backgroundColor: colors.line, height: 4, flex: 1, borderRadius: 4 }, dotActive: { backgroundColor: colors.lime }, text: { color: colors.gray, lineHeight: 22 }, hint: { color: colors.muted, fontSize: 12, lineHeight: 18 }, field: { gap: 6 }, label: { color: colors.warmWhite, fontWeight: '700' }, input: { minHeight: 52, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 12, color: colors.warmWhite, paddingHorizontal: 14, paddingVertical: 12 }, multiline: { minHeight: 100, textAlignVertical: 'top' }, inputError: { borderColor: colors.danger }, fieldError: { color: colors.danger, fontSize: 12 }, options: { gap: 10 }, option: { borderColor: colors.line, borderWidth: 1, borderRadius: 12, padding: 14 }, selected: { backgroundColor: colors.lime, borderColor: colors.lime }, optionText: { color: colors.warmWhite, fontWeight: '700' }, selectedText: { color: colors.black }, areaCard: { gap: 12, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 16 }, reviewCard: { gap: 8, backgroundColor: colors.ink, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 16 }, sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }, sectionTitle: { color: colors.warmWhite, fontSize: 16, fontWeight: '800' }, edit: { color: colors.lime, fontWeight: '700' }, remove: { color: colors.danger, fontWeight: '700' }, errorBanner: { backgroundColor: '#2A1515', borderColor: colors.danger, borderWidth: 1, borderRadius: 12, padding: 12 }, errorText: { color: colors.danger, lineHeight: 20 },
 });

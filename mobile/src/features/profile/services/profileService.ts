@@ -33,8 +33,18 @@ export type ProfileDraft = {
 
 export type Modality = { id: number; name: string; slug: string };
 
+export type ProfileStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'REJECTED' | 'SUSPENDED';
+
+export type OwnProfileStatus = {
+  profileId: string;
+  fullName: string | null;
+  profileStatus: ProfileStatus;
+  revisionStatus: string | null;
+  rejectionReason: string | null;
+};
+
 export async function getOwnProfile() {
-  return (await api.get('/api/v1/me/personal-profile')).data;
+  return (await api.get<OwnProfileStatus>('/api/v1/me/personal-profile')).data;
 }
 
 export async function getProfileDraft() {
@@ -78,4 +88,12 @@ export async function updateServiceAreas(profileId: string, serviceAreas: Servic
 
 export async function submitProfile(profileId: string) {
   await api.post(`/api/v1/me/personal-profile/${profileId}/submission`);
+}
+
+export async function publishProfile(profileId: string) {
+  await api.post(`/api/v1/me/personal-profile/${profileId}/publication`);
+}
+
+export async function unpublishProfile(profileId: string) {
+  await api.delete(`/api/v1/me/personal-profile/${profileId}/publication`);
 }
