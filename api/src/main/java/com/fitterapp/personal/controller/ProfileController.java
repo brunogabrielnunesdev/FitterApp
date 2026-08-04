@@ -2,6 +2,7 @@ package com.fitterapp.personal.controller;
 
 import com.fitterapp.personal.dto.profile.CreateProfileRequestDto;
 import com.fitterapp.personal.dto.profile.ProfileActionResponseDto;
+import com.fitterapp.personal.dto.profile.ProfileDraftResponseDto;
 import com.fitterapp.personal.dto.profile.ProfileStatusResponseDto;
 import com.fitterapp.personal.dto.profile.UpdateModalitiesRequestDto;
 import com.fitterapp.personal.dto.profile.UpdateProfileDraftRequestDto;
@@ -15,6 +16,7 @@ import com.fitterapp.personal.service.modality.UpdateProfileModalitiesService;
 import com.fitterapp.personal.service.publication.ProfilePublicationService;
 import com.fitterapp.personal.service.publication.PublishProfileCommand;
 import com.fitterapp.personal.service.publication.UnpublishProfileCommand;
+import com.fitterapp.personal.service.query.GetOwnProfileDraftService;
 import com.fitterapp.personal.service.query.GetOwnProfileService;
 import com.fitterapp.personal.service.service.UpdateProfileServiceAreasService;
 import com.fitterapp.personal.service.service.UpdateProfileServiceModesService;
@@ -52,11 +54,18 @@ public class ProfileController {
   private final SubmitProfileForReviewService submitProfileForReviewService;
   private final ProfilePublicationService profilePublicationService;
   private final GetOwnProfileService getOwnProfileService;
+  private final GetOwnProfileDraftService getOwnProfileDraftService;
 
   @GetMapping
   public ResponseEntity<ProfileStatusResponseDto> getOwnProfile(@AuthenticationPrincipal Jwt jwt) {
     var profile = getOwnProfileService.get(userId(jwt));
     return ResponseEntity.ok(mapper.toStatusResponse(profile));
+  }
+
+  @GetMapping("/draft")
+  public ResponseEntity<ProfileDraftResponseDto> getOwnProfileDraft(
+      @AuthenticationPrincipal Jwt jwt) {
+    return ResponseEntity.ok(getOwnProfileDraftService.get(userId(jwt)));
   }
 
   @PostMapping

@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ModalityRepository extends JpaRepository<Modality, Short> {
 
   List<Modality> findAllByIdInAndActiveTrue(Collection<Short> ids);
+
+  List<Modality> findAllByActiveTrueOrderByNameAsc();
 }
