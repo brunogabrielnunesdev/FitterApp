@@ -4,12 +4,10 @@ API Spring Boot do FitterApp. Os comandos abaixo são a referência oficial para
 
 ## Pré-requisitos
 
-- Java 21 disponível em `JAVA_HOME` e no `PATH`.
+- Java 21 configurado em `JAVA_HOME`.
 - Docker Desktop em execução para o PostgreSQL local e para os testes de integração.
-- PowerShell 5.1 (`powershell.exe`) disponível no `PATH` para o Maven Wrapper no Windows.
 
-Não é necessário instalar o Maven. O Wrapper baixa e fixa a versão definida em
-`.mvn/wrapper/maven-wrapper.properties`.
+Não é necessário instalar o Maven. O Wrapper binário versionado no repositório inicia pelo Java e baixa a versão fixada em `.mvn/wrapper/maven-wrapper.properties`. Os checksums do Wrapper e da distribuição Maven também ficam fixados nesse arquivo.
 
 ## Maven Wrapper no Windows
 
@@ -19,19 +17,18 @@ Na pasta `api`, confirme o bootstrap com:
 .\mvnw.cmd --version
 ```
 
-O bootstrap foi validado também com um `MAVEN_USER_HOME` vazio. O primeiro uso precisa de acesso HTTPS ao Maven Central para baixar a distribuição; os usos seguintes aproveitam o cache local.
+O bootstrap foi validado também com um `MAVEN_USER_HOME` vazio. O primeiro uso precisa de acesso HTTPS ao Maven Central para baixar a distribuição; os usos seguintes aproveitam o cache local. O arquivo baixado só é executado após a validação do checksum SHA-256.
 
-Se o comando terminar com `Cannot start maven from wrapper`, habilite o diagnóstico e confirme os pré-requisitos:
+Se o comando não iniciar, confirme a configuração do Java:
 
 ```powershell
-Get-Command powershell.exe
 java -version
-$env:MVNW_VERBOSE = "true"
+Write-Output $env:JAVA_HOME
+Test-Path "$env:JAVA_HOME\bin\java.exe"
 .\mvnw.cmd --version
-Remove-Item Env:\MVNW_VERBOSE
 ```
 
-O script `mvnw.cmd` chama especificamente o Windows PowerShell (`powershell.exe`), mesmo quando o terminal atual usa PowerShell 7 (`pwsh`). Uma rede que bloqueie `https://repo.maven.apache.org` também impede o primeiro bootstrap.
+Uma rede que bloqueie `https://repo.maven.apache.org` impede o primeiro download do Maven.
 
 Em Linux e macOS, use o equivalente:
 
@@ -48,6 +45,8 @@ Execute a verificação completa na pasta `api`:
 ```
 
 Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V6`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
+
+O workflow `.github/workflows/backend-ci.yml` valida o bootstrap do Wrapper no Windows e executa essa verificação completa em cada alteração da API.
 
 Para executar apenas uma classe de teste:
 
