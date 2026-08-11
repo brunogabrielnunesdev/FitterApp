@@ -1,4 +1,5 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -37,6 +38,7 @@ const serviceModeFilters: { label: string; value?: ServiceMode }[] = [
 
 export default function CatalogScreen() {
   const { session } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [modalityId, setModalityId] = useState<number>();
   const [neighborhood, setNeighborhood] = useState('');
@@ -48,14 +50,15 @@ export default function CatalogScreen() {
     queryFn: listActiveModalities,
     staleTime: 5 * 60 * 1000,
   });
+  const catalogQueryKey = [
+    'public-profiles',
+    debouncedSearch,
+    modalityId,
+    debouncedNeighborhood,
+    serviceMode,
+  ] as const;
   const profilesQuery = useInfiniteQuery({
-    queryKey: [
-      'public-profiles',
-      debouncedSearch,
-      modalityId,
-      debouncedNeighborhood,
-      serviceMode,
-    ],
+    queryKey: catalogQueryKey,
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       listPublicProfiles({
@@ -70,7 +73,14 @@ export default function CatalogScreen() {
       lastPage.page + 1 < lastPage.totalPages ? lastPage.page + 1 : undefined,
   });
   const profiles = useMemo(
-    () => profilesQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    () => {
+      const seen = new Set<string>();
+      return (profilesQuery.data?.pages.flatMap((page) => page.content) ?? []).filter((profile) => {
+        if (seen.has(profile.profileId)) return false;
+        seen.add(profile.profileId);
+        return true;
+      });
+    },
     [profilesQuery.data],
   );
 
@@ -99,25 +109,46 @@ export default function CatalogScreen() {
         contentContainerStyle={styles.content}
         data={profiles}
         keyExtractor={(profile) => profile.profileId}
-        ListEmptyComponent={<CatalogEmptyState isError={profilesQuery.isError} isLoading={profilesQuery.isLoading} onRetry={profilesQuery.refetch} />}
+        ListEmptyComponent={
+          <CatalogEmptyState
+            error={profilesQuery.error}
+            isError={profilesQuery.isError}
+            isLoading={profilesQuery.isLoading}
+            onRetry={() => profilesQuery.refetch()}
+          />
+        }
         ListFooterComponent={
-          profilesQuery.isFetchingNextPage ? <ActivityIndicator color={colors.lime} /> : null
+          profilesQuery.isFetchingNextPage ? (
+            <ActivityIndicator color={colors.lime} style={styles.footer} />
+          ) : profilesQuery.isFetchNextPageError ? (
+            <View style={styles.footerState}>
+              <Text style={styles.footerError}>{getCatalogErrorMessage(profilesQuery.error)}</Text>
+              <Pressable
+                accessibilityLabel="Tentar carregar mais personais"
+                accessibilityRole="button"
+                onPress={() => profilesQuery.fetchNextPage()}>
+                <Text style={styles.retry}>Tentar novamente</Text>
+              </Pressable>
+            </View>
+          ) : null
         }
         ListHeaderComponent={
           <CatalogHeader
             search={search}
             modalityId={modalityId}
             modalities={modalitiesQuery.data ?? []}
+            modalitiesError={modalitiesQuery.isError}
             neighborhood={neighborhood}
             serviceMode={serviceMode}
             onChangeSearch={setSearch}
             onChangeModality={setModalityId}
             onChangeNeighborhood={setNeighborhood}
             onChangeServiceMode={setServiceMode}
+            onRetryModalities={() => modalitiesQuery.refetch()}
           />
         }
         onEndReached={() => {
-          if (profilesQuery.hasNextPage && !profilesQuery.isFetchingNextPage) {
+          if (profilesQuery.hasNextPage && !profilesQuery.isFetching) {
             profilesQuery.fetchNextPage();
           }
         }}
@@ -125,9 +156,9 @@ export default function CatalogScreen() {
         refreshControl={
           <RefreshControl
             colors={[colors.lime]}
-            refreshing={profilesQuery.isRefetching}
+            refreshing={profilesQuery.isRefetching && !profilesQuery.isFetchingNextPage}
             tintColor={colors.lime}
-            onRefresh={profilesQuery.refetch}
+            onRefresh={() => queryClient.resetQueries({ queryKey: catalogQueryKey })}
           />
         }
         renderItem={renderProfile}
@@ -141,24 +172,28 @@ type CatalogHeaderProps = {
   search: string;
   modalityId?: number;
   modalities: { id: number; name: string; slug: string }[];
+  modalitiesError: boolean;
   neighborhood: string;
   serviceMode?: ServiceMode;
   onChangeSearch: (value: string) => void;
   onChangeModality: (value?: number) => void;
   onChangeNeighborhood: (value: string) => void;
   onChangeServiceMode: (value?: ServiceMode) => void;
+  onRetryModalities: () => void;
 };
 
 function CatalogHeader({
   search,
   modalityId,
   modalities,
+  modalitiesError,
   neighborhood,
   serviceMode,
   onChangeSearch,
   onChangeModality,
   onChangeNeighborhood,
   onChangeServiceMode,
+  onRetryModalities,
 }: CatalogHeaderProps) {
   return (
     <View style={styles.listHeader}>
@@ -190,6 +225,8 @@ function CatalogHeader({
           const selected = filter.value === serviceMode;
           return (
             <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
               key={filter.label}
               onPress={() => onChangeServiceMode(filter.value)}
               style={[styles.filter, selected && styles.filterSelected]}>
@@ -217,6 +254,7 @@ function CatalogHeader({
               <Pressable
                 accessibilityLabel={`Filtrar por ${modality.name}`}
                 accessibilityRole="button"
+                accessibilityState={{ selected }}
                 key={modality.id}
                 onPress={() => onChangeModality(selected ? undefined : modality.id)}
                 style={[styles.filter, selected && styles.filterSelected]}>
@@ -226,6 +264,14 @@ function CatalogHeader({
               </Pressable>
             );
           })}
+        </View>
+      )}
+      {modalitiesError && (
+        <View style={styles.inlineError}>
+          <Text style={styles.inlineErrorText}>Não foi possível carregar as modalidades.</Text>
+          <Pressable accessibilityRole="button" onPress={onRetryModalities}>
+            <Text style={styles.retry}>Tentar novamente</Text>
+          </Pressable>
         </View>
       )}
       {(modalityId !== undefined || neighborhood.trim()) && (
@@ -247,10 +293,11 @@ function CatalogHeader({
 type CatalogEmptyStateProps = {
   isLoading: boolean;
   isError: boolean;
+  error: unknown;
   onRetry: () => void;
 };
 
-function CatalogEmptyState({ isLoading, isError, onRetry }: CatalogEmptyStateProps) {
+function CatalogEmptyState({ error, isLoading, isError, onRetry }: CatalogEmptyStateProps) {
   if (isLoading) {
     return <ActivityIndicator color={colors.lime} style={styles.state} />;
   }
@@ -258,8 +305,8 @@ function CatalogEmptyState({ isLoading, isError, onRetry }: CatalogEmptyStatePro
   if (isError) {
     return (
       <View style={styles.state}>
-        <Text style={styles.emptyText}>Não foi possível carregar os personais.</Text>
-        <Pressable onPress={onRetry}>
+        <Text style={styles.emptyText}>{getCatalogErrorMessage(error)}</Text>
+        <Pressable accessibilityRole="button" onPress={onRetry}>
           <Text style={styles.retry}>Tentar novamente</Text>
         </Pressable>
       </View>
@@ -267,6 +314,16 @@ function CatalogEmptyState({ isLoading, isError, onRetry }: CatalogEmptyStatePro
   }
 
   return <Text style={styles.emptyText}>Nenhum personal encontrado por enquanto.</Text>;
+}
+
+function getCatalogErrorMessage(error: unknown) {
+  if (isAxiosError(error)) {
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      return 'A conexão demorou demais. Verifique sua internet e tente novamente.';
+    }
+    if (!error.response) return 'Você está offline ou a API está indisponível. Tente novamente.';
+  }
+  return 'Não foi possível carregar os personais. Tente novamente.';
 }
 
 const styles = StyleSheet.create({
@@ -307,6 +364,11 @@ const styles = StyleSheet.create({
   filterLabel: { color: colors.gray, fontSize: 12, fontWeight: '700' },
   filterLabelSelected: { color: colors.black },
   state: { alignItems: 'center', gap: 12, paddingVertical: 48 },
+  footer: { paddingVertical: 16 },
+  footerState: { alignItems: 'center', gap: 8, paddingVertical: 16 },
+  footerError: { color: colors.gray, fontSize: 12, textAlign: 'center' },
+  inlineError: { gap: 6, marginTop: 12 },
+  inlineErrorText: { color: colors.gray, fontSize: 12 },
   emptyText: { color: colors.gray, paddingVertical: 36, textAlign: 'center' },
   retry: { color: colors.lime, fontWeight: '800' },
 });

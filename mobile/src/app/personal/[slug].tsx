@@ -32,9 +32,14 @@ export default function PersonalProfileScreen() {
   if (!profileQuery.data) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.error}>
-          {profileQuery.isLoading ? 'Carregando perfil...' : 'Não foi possível carregar este perfil.'}
-        </Text>
+        <View style={styles.errorState}>
+          <Text style={styles.error}>
+            {profileQuery.isLoading ? 'Carregando perfil...' : 'Não foi possível carregar este perfil.'}
+          </Text>
+          {profileQuery.isError && (
+            <PrimaryButton label="Tentar novamente" onPress={() => profileQuery.refetch()} />
+          )}
+        </View>
       </SafeAreaView>
     );
   }
@@ -113,4 +118,5 @@ const styles = StyleSheet.create({
   price: { color: colors.lime, fontSize: 22, fontWeight: '900' },
   contactError: { color: colors.danger, fontSize: 13, textAlign: 'center' },
   error: { color: colors.warmWhite, padding: 24 },
+  errorState: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
 });
