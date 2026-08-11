@@ -1,12 +1,5 @@
 import type { PriceUnit, ServiceMode } from './profileDetail'
 
-export type AdminModality = {
-  id: number
-  name: string
-  slug: string
-  active: boolean
-}
-
 export type PersonalProfileInput = {
   fullName: string
   biography: string | null

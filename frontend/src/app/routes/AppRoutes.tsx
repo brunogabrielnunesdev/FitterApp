@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { ProtectedRoute } from './ProtectedRoute'
 import { AdminLayout } from '../layout/AdminLayout'
-import { AdminSectionUnavailable } from '../../common/components/AdminSectionUnavailable'
 import { AdminLoginPage } from '../../features/auth/pages/AdminLoginPage'
 import { AdminDashboardPage } from '../../features/dashboard/pages/AdminDashboardPage'
 import { AdminUserDetailPage } from '../../features/users/pages/AdminUserDetailPage'
@@ -18,6 +17,9 @@ const CreatePersonalPage = lazy(
 )
 const EditPersonalPage = lazy(
   () => import('../../features/profiles/pages/EditPersonalPage'),
+)
+const AdminModalitiesPage = lazy(
+  () => import('../../features/modalities/pages/AdminModalitiesPage'),
 )
 
 function AdminPageLoading() {
@@ -63,11 +65,9 @@ export function AppRoutes() {
           <Route
             path="/admin/modalities"
             element={
-              <AdminSectionUnavailable
-                description="O catálogo, a edição e a ativação de modalidades serão conectados ao contrato administrativo na WEB-07."
-                eyebrow="MODALIDADES"
-                title="Catálogo de modalidades"
-              />
+              <Suspense fallback={<AdminPageLoading />}>
+                <AdminModalitiesPage />
+              </Suspense>
             }
           />
         </Route>

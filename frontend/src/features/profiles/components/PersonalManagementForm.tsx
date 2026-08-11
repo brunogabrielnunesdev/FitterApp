@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useFieldArray, useForm, type FieldError } from 'react-hook-form'
 
-import { listAdminModalities } from '../services/personalManagementService'
+import { listAdminModalities } from '../../modalities/services/adminModalityService'
+import { modalityQueryKeys } from '../../modalities/services/modalityQueryKeys'
 import type { PersonalFormValues } from '../types/personalManagement'
 import { createPersonalManagementSchema } from '../validation/personalManagementSchema'
 
@@ -43,7 +44,7 @@ export function PersonalManagementForm({
   const isCreate = mode === 'create'
   const [pendingValues, setPendingValues] = useState<PersonalFormValues>()
   const modalitiesQuery = useQuery({
-    queryKey: ['admin-modalities', 'form-options'],
+    queryKey: modalityQueryKeys.all,
     queryFn: listAdminModalities,
     retry: false,
   })
