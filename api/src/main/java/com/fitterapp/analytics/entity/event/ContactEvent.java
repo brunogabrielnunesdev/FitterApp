@@ -46,12 +46,29 @@ public class ContactEvent {
   @Column(length = 100)
   private String city;
 
+  @Column(name = "unique_event", nullable = false)
+  private boolean uniqueEvent;
+
+  @Column(name = "idempotency_key_hash", length = 64)
+  private String idempotencyKeyHash;
+
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
 
   public static ContactEvent whatsappToPersonal(
       User user, Profile personal, EventSource source, String city, OffsetDateTime occurredAt) {
-    ContactEvent event = base(user, source, city, occurredAt);
+    return whatsappToPersonal(user, personal, source, city, occurredAt, true, null);
+  }
+
+  public static ContactEvent whatsappToPersonal(
+      User user,
+      Profile personal,
+      EventSource source,
+      String city,
+      OffsetDateTime occurredAt,
+      boolean uniqueEvent,
+      String idempotencyKeyHash) {
+    ContactEvent event = base(user, source, city, occurredAt, uniqueEvent, idempotencyKeyHash);
     event.personalProfile = personal;
     return event;
   }
@@ -62,18 +79,25 @@ public class ContactEvent {
       EventSource source,
       String city,
       OffsetDateTime occurredAt) {
-    ContactEvent event = base(user, source, city, occurredAt);
+    ContactEvent event = base(user, source, city, occurredAt, true, null);
     event.academyProfile = academy;
     return event;
   }
 
   private static ContactEvent base(
-      User user, EventSource source, String city, OffsetDateTime occurredAt) {
+      User user,
+      EventSource source,
+      String city,
+      OffsetDateTime occurredAt,
+      boolean uniqueEvent,
+      String idempotencyKeyHash) {
     ContactEvent event = new ContactEvent();
     event.user = user;
     event.source = source;
     event.city = city;
     event.occurredAt = occurredAt;
+    event.uniqueEvent = uniqueEvent;
+    event.idempotencyKeyHash = idempotencyKeyHash;
     return event;
   }
 }

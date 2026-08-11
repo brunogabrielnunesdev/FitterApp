@@ -36,6 +36,8 @@ public class PublicProfileController {
       @RequestParam(defaultValue = "PUBLIC_WEB") EventSource source,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
+      @RequestHeader(name = "X-Visitor-Id", required = false) String visitorId,
+      @RequestHeader(name = "X-Idempotency-Key", required = false) String idempotencyKey,
       @AuthenticationPrincipal Jwt jwt) {
     int safePage = Math.max(page, 0), safeSize = Math.min(Math.max(size, 1), 50);
     var result =
@@ -54,7 +56,9 @@ public class PublicProfileController {
         serviceMode,
         safePage,
         safeSize,
-        result.getTotalElements());
+        result.getTotalElements(),
+        visitorId,
+        idempotencyKey);
     return ResponseEntity.ok(mapper.toPage(result));
   }
 
@@ -62,9 +66,12 @@ public class PublicProfileController {
   public ResponseEntity<PublicProfileDetailDto> get(
       @PathVariable String slug,
       @RequestParam(defaultValue = "PUBLIC_WEB") EventSource source,
+      @RequestHeader(name = "X-Visitor-Id", required = false) String visitorId,
+      @RequestHeader(name = "X-Idempotency-Key", required = false) String idempotencyKey,
       @AuthenticationPrincipal Jwt jwt) {
     var result = getService.get(slug);
-    eventService.recordPersonalView(userId(jwt), source, result.profile());
+    eventService.recordPersonalView(
+        userId(jwt), source, result.profile(), visitorId, idempotencyKey);
     return ResponseEntity.ok(mapper.toDetail(result));
   }
 
@@ -72,9 +79,13 @@ public class PublicProfileController {
   public ResponseEntity<WhatsappContactResponseDto> startWhatsappContact(
       @PathVariable String slug,
       @RequestParam(defaultValue = "PUBLIC_WEB") EventSource source,
+      @RequestHeader(name = "X-Visitor-Id", required = false) String visitorId,
+      @RequestHeader(name = "X-Idempotency-Key", required = false) String idempotencyKey,
       @AuthenticationPrincipal Jwt jwt) {
     var result =
-        contactService.start(new StartWhatsappContactCommand(slug, userId(jwt), source));
+        contactService.start(
+            new StartWhatsappContactCommand(
+                slug, userId(jwt), source, visitorId, idempotencyKey));
     return ResponseEntity.ok(new WhatsappContactResponseDto(result.whatsappUrl()));
   }
 

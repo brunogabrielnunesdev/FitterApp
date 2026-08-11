@@ -30,13 +30,16 @@ class PublicCatalogEventServiceTests {
   private final SearchEventRepository searches = mock(SearchEventRepository.class);
   private final ProfileViewEventRepository views = mock(ProfileViewEventRepository.class);
   private final UserRepository users = mock(UserRepository.class);
+  private final MetricDeduplicationService deduplication = mock(MetricDeduplicationService.class);
   private PublicCatalogEventService service;
 
   @BeforeEach
   void setUp() {
     service =
         new PublicCatalogEventService(
-            searches, views, users, Clock.fixed(NOW, ZoneOffset.UTC));
+            searches, views, users, Clock.fixed(NOW, ZoneOffset.UTC), deduplication);
+    when(deduplication.evaluate(any(), any(), any(), any(), any(), any()))
+        .thenReturn(new MetricEventDecision(true, true, null));
   }
 
   @Test
@@ -68,6 +71,7 @@ class PublicCatalogEventServiceTests {
     assertThat(event.getFilters().get("page").asInt()).isEqualTo(1);
     assertThat(event.getResultCount()).isEqualTo(42);
     assertThat(event.getOccurredAt().toInstant()).isEqualTo(NOW);
+    assertThat(event.isUniqueEvent()).isTrue();
   }
 
   @Test
@@ -82,6 +86,46 @@ class PublicCatalogEventServiceTests {
     assertThat(captor.getValue().getPersonalProfile()).isSameAs(profile);
     assertThat(captor.getValue().getSource()).isEqualTo(EventSource.PUBLIC_WEB);
     assertThat(captor.getValue().getOccurredAt().toInstant()).isEqualTo(NOW);
+    assertThat(captor.getValue().isUniqueEvent()).isTrue();
     verify(users, never()).findById(any());
+  }
+
+  @Test
+  void storesSemanticDuplicateAsRawButNotUnique() {
+    when(deduplication.evaluate(any(), any(), any(), any(), any(), any()))
+        .thenReturn(new MetricEventDecision(true, false, "a".repeat(64)));
+
+    service.recordSearch(
+        null,
+        EventSource.PUBLIC_WEB,
+        "Bruno",
+        null,
+        null,
+        null,
+        0,
+        20,
+        1,
+        "visitor-1",
+        "request-2");
+
+    ArgumentCaptor<SearchEvent> captor = ArgumentCaptor.forClass(SearchEvent.class);
+    verify(searches).save(captor.capture());
+    assertThat(captor.getValue().isUniqueEvent()).isFalse();
+    assertThat(captor.getValue().getIdempotencyKeyHash()).isEqualTo("a".repeat(64));
+  }
+
+  @Test
+  void skipsExactIdempotentRetry() {
+    when(deduplication.evaluate(any(), any(), any(), any(), any(), any()))
+        .thenReturn(new MetricEventDecision(false, false, "b".repeat(64)));
+
+    service.recordPersonalView(
+        null,
+        EventSource.PUBLIC_WEB,
+        mock(Profile.class),
+        "visitor-1",
+        "same-request");
+
+    verify(views, never()).save(any());
   }
 }

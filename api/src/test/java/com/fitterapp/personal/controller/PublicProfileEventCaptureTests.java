@@ -52,12 +52,25 @@ class PublicProfileEventCaptureTests {
     when(mapper.toPage(any())).thenReturn(mock(PublicProfilePageDto.class));
 
     mockMvc
-        .perform(get("/api/v1/public/personals?query=Bruno&modalityId=2"))
+        .perform(
+            get("/api/v1/public/personals?query=Bruno&modalityId=2")
+                .header("X-Visitor-Id", "visitor-1")
+                .header("X-Idempotency-Key", "request-1"))
         .andExpect(status().isOk());
 
     verify(eventService)
         .recordSearch(
-            null, EventSource.PUBLIC_WEB, "Bruno", (short) 2, null, null, 0, 20, 0);
+            null,
+            EventSource.PUBLIC_WEB,
+            "Bruno",
+            (short) 2,
+            null,
+            null,
+            0,
+            20,
+            0,
+            "visitor-1",
+            "request-1");
   }
 
   @Test
@@ -78,7 +91,8 @@ class PublicProfileEventCaptureTests {
                         .authorities(new SimpleGrantedAuthority("ROLE_STUDENT"))))
         .andExpect(status().isOk());
 
-    verify(eventService).recordPersonalView(userId, EventSource.MOBILE_APP, profile);
+    verify(eventService)
+        .recordPersonalView(userId, EventSource.MOBILE_APP, profile, null, null);
   }
 
   @Test
@@ -93,6 +107,6 @@ class PublicProfileEventCaptureTests {
     verify(contactService)
         .start(
             new StartWhatsappContactCommand(
-                "bruno-personal", null, EventSource.PUBLIC_WEB));
+                "bruno-personal", null, EventSource.PUBLIC_WEB, null, null));
   }
 }

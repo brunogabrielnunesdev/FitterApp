@@ -44,7 +44,7 @@ Execute a verificação completa na pasta `api`:
 .\mvnw.cmd clean verify
 ```
 
-Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V8`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
+Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V9`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
 
 O workflow `.github/workflows/backend-ci.yml` valida o bootstrap do Wrapper no Windows e executa essa verificação completa em cada alteração da API.
 
@@ -109,6 +109,18 @@ As etapas do funil do MVP são persistidas com origem, usuário quando identific
 | Início de contato por WhatsApp | `contact_events` | parâmetro `source` da requisição |
 
 Nas rotas públicas de personal, `source` aceita `MOBILE_APP`, `PUBLIC_WEB` ou `ADMIN_WEB` e assume `PUBLIC_WEB` quando omitido. Pesquisas registram o termo normalizado, filtros efetivamente recebidos, paginação e total de resultados. Visualizações e contatos podem ser anônimos; quando um JWT válido é enviado, o usuário também é associado ao evento. A migration `V8` cria `funnel_events`; as tabelas de pesquisa, visualização e contato permanecem as definidas na `V6`.
+
+### Deduplicação de métricas
+
+A migration `V9` diferencia eventos brutos e únicos nas tabelas `search_events`, `profile_view_events` e `contact_events`:
+
+- **Bruto:** toda ação recebida e processada que não seja retry da mesma chave de idempotência. Corresponde a todas as linhas da tabela.
+- **Único:** primeira ocorrência da mesma ação e identidade dentro da janela. Corresponde às linhas com `unique_event = true`.
+- **Retry idempotente:** repetição com a mesma `X-Idempotency-Key` para a mesma identidade e tipo; não cria outra linha.
+
+As janelas móveis são de 5 minutos para pesquisa, 30 minutos para visualização de perfil e 10 minutos para contato por WhatsApp. A impressão digital considera usuário ou visitante, origem e os dados relevantes da ação. Paginação não cria outra pesquisa única quando termo e filtros permanecem iguais.
+
+Clientes devem enviar uma chave nova em `X-Idempotency-Key` para cada ação lógica e reutilizá-la somente em retries. Para tráfego anônimo, `X-Visitor-Id` identifica de forma estável a instalação ou sessão e permite deduplicação semântica entre requisições. Sem JWT e sem `X-Visitor-Id`, ações diferentes não são agrupadas para evitar unir visitantes distintos; ainda é possível eliminar um retry exato usando `X-Idempotency-Key`. Identificadores e chaves nunca são persistidos em claro nas estruturas de deduplicação, apenas hashes SHA-256.
 
 ## Execução local
 

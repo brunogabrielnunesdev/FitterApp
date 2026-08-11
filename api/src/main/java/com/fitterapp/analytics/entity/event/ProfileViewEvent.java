@@ -46,12 +46,30 @@ public class ProfileViewEvent {
   @Column(length = 100)
   private String city;
 
+  @Column(name = "unique_event", nullable = false)
+  private boolean uniqueEvent;
+
+  @Column(name = "idempotency_key_hash", length = 64)
+  private String idempotencyKeyHash;
+
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
 
   public static ProfileViewEvent personalView(
       User viewer, Profile personal, EventSource source, String city, OffsetDateTime occurredAt) {
-    ProfileViewEvent event = base(viewer, source, city, occurredAt);
+    return personalView(viewer, personal, source, city, occurredAt, true, null);
+  }
+
+  public static ProfileViewEvent personalView(
+      User viewer,
+      Profile personal,
+      EventSource source,
+      String city,
+      OffsetDateTime occurredAt,
+      boolean uniqueEvent,
+      String idempotencyKeyHash) {
+    ProfileViewEvent event =
+        base(viewer, source, city, occurredAt, uniqueEvent, idempotencyKeyHash);
     event.personalProfile = personal;
     return event;
   }
@@ -62,18 +80,25 @@ public class ProfileViewEvent {
       EventSource source,
       String city,
       OffsetDateTime occurredAt) {
-    ProfileViewEvent event = base(viewer, source, city, occurredAt);
+    ProfileViewEvent event = base(viewer, source, city, occurredAt, true, null);
     event.academyProfile = academy;
     return event;
   }
 
   private static ProfileViewEvent base(
-      User viewer, EventSource source, String city, OffsetDateTime occurredAt) {
+      User viewer,
+      EventSource source,
+      String city,
+      OffsetDateTime occurredAt,
+      boolean uniqueEvent,
+      String idempotencyKeyHash) {
     ProfileViewEvent event = new ProfileViewEvent();
     event.viewer = viewer;
     event.source = source;
     event.city = city;
     event.occurredAt = occurredAt;
+    event.uniqueEvent = uniqueEvent;
+    event.idempotencyKeyHash = idempotencyKeyHash;
     return event;
   }
 }

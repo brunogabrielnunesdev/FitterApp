@@ -41,7 +41,9 @@ class OperationsAndMetricsSchemaMigrationTests {
             "profile_view_events",
             "contact_events",
             "app_access_events",
-            "funnel_events");
+            "funnel_events",
+            "metric_idempotency_keys",
+            "metric_unique_states");
   }
 
   @Test
@@ -172,6 +174,23 @@ class OperationsAndMetricsSchemaMigrationTests {
                     personalId,
                     "ACCOUNT_COMPLETED",
                     "MOBILE_APP",
+                    now()))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void rejectsInvalidMetricDeduplicationHashes() {
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    """
+                INSERT INTO metric_idempotency_keys (
+                    event_type, actor_hash, idempotency_key_hash, claimed_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                    "SEARCH",
+                    "not-a-sha-256",
+                    "also-invalid",
                     now()))
         .isInstanceOf(DataIntegrityViolationException.class);
   }

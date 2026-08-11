@@ -78,10 +78,18 @@ class OperationsAndMetricsPersistenceTests {
             "musculacao",
             objectMapper.createObjectNode().put("city", "Umuarama").put("serviceMode", "IN_PERSON"),
             8,
-            occurredAt);
+            occurredAt,
+            false,
+            "a".repeat(64));
     ProfileViewEvent view =
         ProfileViewEvent.personalView(
-            student, personal, EventSource.MOBILE_APP, "Umuarama", occurredAt.plusMinutes(1));
+            student,
+            personal,
+            EventSource.MOBILE_APP,
+            "Umuarama",
+            occurredAt.plusMinutes(1),
+            false,
+            "b".repeat(64));
     ContactEvent contact =
         ContactEvent.whatsappToPersonal(
             student, personal, EventSource.MOBILE_APP, "Umuarama", occurredAt.plusMinutes(2));
@@ -97,10 +105,15 @@ class OperationsAndMetricsPersistenceTests {
 
     assertThat(savedSearch.getFilters().path("city").asText()).isEqualTo("Umuarama");
     assertThat(savedSearch.getResultCount()).isEqualTo(8);
+    assertThat(savedSearch.isUniqueEvent()).isFalse();
+    assertThat(savedSearch.getIdempotencyKeyHash()).isEqualTo("a".repeat(64));
     assertThat(savedView.getPersonalProfile().getId()).isEqualTo(personal.getId());
     assertThat(savedView.getAcademyProfile()).isNull();
+    assertThat(savedView.isUniqueEvent()).isFalse();
+    assertThat(savedView.getIdempotencyKeyHash()).isEqualTo("b".repeat(64));
     assertThat(savedContact.getPersonalProfile().getId()).isEqualTo(personal.getId());
     assertThat(savedContact.getUser().getId()).isEqualTo(student.getId());
+    assertThat(savedContact.isUniqueEvent()).isTrue();
   }
 
   @Test

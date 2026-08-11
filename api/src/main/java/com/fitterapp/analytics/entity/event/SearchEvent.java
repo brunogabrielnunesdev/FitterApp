@@ -46,6 +46,12 @@ public class SearchEvent {
   @Column(name = "result_count", nullable = false)
   private int resultCount;
 
+  @Column(name = "unique_event", nullable = false)
+  private boolean uniqueEvent;
+
+  @Column(name = "idempotency_key_hash", length = 64)
+  private String idempotencyKeyHash;
+
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
 
@@ -56,6 +62,18 @@ public class SearchEvent {
       JsonNode filters,
       int resultCount,
       OffsetDateTime occurredAt) {
+    return record(user, source, searchTerm, filters, resultCount, occurredAt, true, null);
+  }
+
+  public static SearchEvent record(
+      User user,
+      EventSource source,
+      String searchTerm,
+      JsonNode filters,
+      int resultCount,
+      OffsetDateTime occurredAt,
+      boolean uniqueEvent,
+      String idempotencyKeyHash) {
     SearchEvent event = new SearchEvent();
     event.user = user;
     event.source = source;
@@ -63,6 +81,8 @@ public class SearchEvent {
     event.filters = filters;
     event.resultCount = resultCount;
     event.occurredAt = occurredAt;
+    event.uniqueEvent = uniqueEvent;
+    event.idempotencyKeyHash = idempotencyKeyHash;
     return event;
   }
 }

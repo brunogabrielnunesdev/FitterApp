@@ -4,4 +4,6 @@ import com.fitterapp.analytics.entity.event.SearchEvent;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SearchEventRepository extends JpaRepository<SearchEvent, UUID> {}
+public interface SearchEventRepository extends JpaRepository<SearchEvent, UUID> {
+  long countByUniqueEventTrue();
+}

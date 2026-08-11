@@ -13,6 +13,7 @@ import com.fitterapp.user.entity.User;
 import com.fitterapp.user.repository.UserRepository;
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class PublicCatalogEventService {
   private final ProfileViewEventRepository profileViewEvents;
   private final UserRepository users;
   private final Clock clock;
+  private final MetricDeduplicationService deduplication;
 
   @Transactional
   public void recordSearch(
@@ -37,6 +39,33 @@ public class PublicCatalogEventService {
       int page,
       int size,
       long resultCount) {
+    recordSearch(
+        userId,
+        source,
+        query,
+        modalityId,
+        neighborhood,
+        serviceMode,
+        page,
+        size,
+        resultCount,
+        null,
+        null);
+  }
+
+  @Transactional
+  public void recordSearch(
+      UUID userId,
+      EventSource source,
+      String query,
+      Short modalityId,
+      String neighborhood,
+      ServiceMode serviceMode,
+      int page,
+      int size,
+      long resultCount,
+      String visitorId,
+      String idempotencyKey) {
     String normalizedQuery = normalize(query);
     ObjectNode filters = JsonNodeFactory.instance.objectNode();
     if (modalityId != null) filters.put("modalityId", modalityId);
@@ -45,6 +74,21 @@ public class PublicCatalogEventService {
     if (serviceMode != null) filters.put("serviceMode", serviceMode.name());
     filters.put("page", page);
     filters.put("size", size);
+    OffsetDateTime occurredAt = OffsetDateTime.now(clock);
+    MetricEventDecision decision =
+        deduplication.evaluate(
+            MetricEventType.SEARCH,
+            userId,
+            visitorId,
+            idempotencyKey,
+            occurredAt,
+            List.of(
+                source.name(),
+                value(normalizedQuery),
+                value(modalityId),
+                value(normalizedNeighborhood),
+                value(serviceMode)));
+    if (!decision.recordEvent()) return;
     searchEvents.save(
         SearchEvent.record(
             user(userId),
@@ -52,14 +96,42 @@ public class PublicCatalogEventService {
             normalizedQuery,
             filters,
             (int) Math.min(resultCount, Integer.MAX_VALUE),
-            OffsetDateTime.now(clock)));
+            occurredAt,
+            decision.uniqueEvent(),
+            decision.idempotencyKeyHash()));
   }
 
   @Transactional
   public void recordPersonalView(UUID userId, EventSource source, Profile profile) {
+    recordPersonalView(userId, source, profile, null, null);
+  }
+
+  @Transactional
+  public void recordPersonalView(
+      UUID userId,
+      EventSource source,
+      Profile profile,
+      String visitorId,
+      String idempotencyKey) {
+    OffsetDateTime occurredAt = OffsetDateTime.now(clock);
+    MetricEventDecision decision =
+        deduplication.evaluate(
+            MetricEventType.PROFILE_VIEW,
+            userId,
+            visitorId,
+            idempotencyKey,
+            occurredAt,
+            List.of(source.name(), value(profile.getId())));
+    if (!decision.recordEvent()) return;
     profileViewEvents.save(
         ProfileViewEvent.personalView(
-            user(userId), profile, source, null, OffsetDateTime.now(clock)));
+            user(userId),
+            profile,
+            source,
+            null,
+            occurredAt,
+            decision.uniqueEvent(),
+            decision.idempotencyKeyHash()));
   }
 
   private User user(UUID userId) {
@@ -68,5 +140,9 @@ public class PublicCatalogEventService {
 
   private String normalize(String value) {
     return value == null || value.isBlank() ? null : value.trim();
+  }
+
+  private String value(Object value) {
+    return value == null ? "" : value.toString();
   }
 }
