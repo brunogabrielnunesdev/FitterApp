@@ -41,4 +41,5 @@ export type PublicProfilesQuery = {
   modalityId?: number;
   neighborhood?: string;
   serviceMode?: ServiceMode;
+  idempotencyKey: string;
 };

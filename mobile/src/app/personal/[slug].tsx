@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useRef } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
 import { colors } from '@/common/theme/colors';
+import { createIdempotencyKey } from '@/common/services/metrics';
 import {
   getPublicProfile,
   startWhatsappContact,
@@ -19,14 +21,20 @@ const serviceModeLabels: Record<ServiceMode, string> = {
 
 export default function PersonalProfileScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+  const profileViewKey = useRef(createIdempotencyKey());
+  const contactKey = useRef(createIdempotencyKey());
   const profileQuery = useQuery({
     queryKey: ['public-profile', slug],
-    queryFn: () => getPublicProfile(slug),
+    queryFn: () => getPublicProfile(slug, profileViewKey.current),
     enabled: Boolean(slug),
   });
   const contactMutation = useMutation({
-    mutationFn: startWhatsappContact,
-    onSuccess: ({ whatsappUrl }) => Linking.openURL(whatsappUrl),
+    mutationFn: ({ profileSlug, idempotencyKey }: { profileSlug: string; idempotencyKey: string }) =>
+      startWhatsappContact(profileSlug, idempotencyKey),
+    onSuccess: ({ whatsappUrl }) => {
+      contactKey.current = createIdempotencyKey();
+      Linking.openURL(whatsappUrl);
+    },
   });
 
   if (!profileQuery.data) {
@@ -85,7 +93,7 @@ export default function PersonalProfileScreen() {
         <PrimaryButton
           label="Conversar no WhatsApp"
           loading={contactMutation.isPending}
-          onPress={() => contactMutation.mutate(profile.slug)}
+          onPress={() => contactMutation.mutate({ profileSlug: profile.slug, idempotencyKey: contactKey.current })}
         />
       </ScrollView>
     </SafeAreaView>

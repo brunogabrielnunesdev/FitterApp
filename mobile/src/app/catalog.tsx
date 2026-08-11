@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/common/theme/colors';
+import { createIdempotencyKey } from '@/common/services/metrics';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { ProfileCard } from '@/features/catalog/components/ProfileCard';
 import { useDebouncedValue } from '@/features/catalog/hooks/useDebouncedValue';
@@ -45,6 +46,7 @@ export default function CatalogScreen() {
   const [serviceMode, setServiceMode] = useState<ServiceMode>();
   const debouncedSearch = useDebouncedValue(search.trim());
   const debouncedNeighborhood = useDebouncedValue(neighborhood.trim());
+  const searchIntentKeys = useRef(new Map<string, string>());
   const modalitiesQuery = useQuery({
     queryKey: ['public-modalities'],
     queryFn: listActiveModalities,
@@ -60,15 +62,20 @@ export default function CatalogScreen() {
   const profilesQuery = useInfiniteQuery({
     queryKey: catalogQueryKey,
     initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
-      listPublicProfiles({
+    queryFn: ({ pageParam }) => {
+      const intent = `${debouncedSearch}|${modalityId ?? ''}|${debouncedNeighborhood}|${serviceMode ?? ''}|${pageParam}`;
+      const idempotencyKey = searchIntentKeys.current.get(intent) ?? createIdempotencyKey();
+      searchIntentKeys.current.set(intent, idempotencyKey);
+      return listPublicProfiles({
         page: pageParam,
         size: PAGE_SIZE,
         query: debouncedSearch,
         modalityId,
         neighborhood: debouncedNeighborhood,
         serviceMode,
-      }),
+        idempotencyKey,
+      });
+    },
     getNextPageParam: (lastPage) =>
       lastPage.page + 1 < lastPage.totalPages ? lastPage.page + 1 : undefined,
   });
