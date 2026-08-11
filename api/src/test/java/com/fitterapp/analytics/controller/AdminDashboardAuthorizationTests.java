@@ -53,6 +53,17 @@ class AdminDashboardAuthorizationTests {
   }
 
   @Test
+  void rejectsPersonalAccess() throws Exception {
+    mockMvc
+        .perform(
+            get(URL)
+                .param("from", FROM.toString())
+                .param("to", TO.toString())
+                .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_PERSONAL"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void returnsDashboardToAdministrator() throws Exception {
     when(dashboardQueryService.query(FROM, TO, "America/Sao_Paulo"))
         .thenReturn(response());

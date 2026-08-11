@@ -49,6 +49,15 @@ class AdminModalityAuthorizationTests {
   }
 
   @Test
+  void rejectsStudentListingModalities() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/v1/admin/modalities")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_STUDENT"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void allowsAdministratorToListInactiveModalities() throws Exception {
     Modality modality = modality((short) 9, "Pilates", "pilates", false);
     when(service.list()).thenReturn(List.of(modality));

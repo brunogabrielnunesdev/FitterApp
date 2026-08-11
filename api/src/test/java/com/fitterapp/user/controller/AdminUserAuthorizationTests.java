@@ -52,6 +52,15 @@ class AdminUserAuthorizationTests {
   }
 
   @Test
+  void rejectsPersonalAccess() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/v1/admin/users")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_PERSONAL"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void allowsAdministratorToListUsers() throws Exception {
     when(listAdminUsersService.list(any(), any(), any(), any()))
         .thenReturn(org.springframework.data.domain.Page.empty());

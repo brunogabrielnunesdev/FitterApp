@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/personal-profiles")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN', 'OWNER')")
 public class AdminPersonalManagementController {
   private final AdminPersonalManagementService service;
   private final AdminPersonalManagementMapper mapper;

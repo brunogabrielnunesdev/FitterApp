@@ -132,6 +132,22 @@ Clientes devem enviar uma chave nova em `X-Idempotency-Key` para cada ação ló
 
 `from` e `to` são datas ISO-8601 obrigatórias e inclusivas no timezone informado. `timezone` aceita identificadores IANA e assume `America/Sao_Paulo`; a resposta explicita `startInclusive` e `endExclusive` com seus offsets. A consulta usa intervalo semiaberto, portanto inclui o início do primeiro dia e exclui exatamente o início do dia posterior a `to`, inclusive em transições de horário de verão. A migration `V10` adiciona os índices usados pelas agregações.
 
+## Autorização e privacidade
+
+Todas as rotas sob `/api/v1/admin/**` exigem `ADMIN` ou `OWNER` em duas camadas: no filtro HTTP e com `@PreAuthorize` nos controllers administrativos. A matriz esperada é:
+
+| Identidade | Rotas administrativas |
+| --- | --- |
+| Anônimo | `401 Unauthorized` |
+| `STUDENT` | `403 Forbidden` |
+| `PERSONAL` | `403 Forbidden` |
+| `ADMIN` | Permitido |
+| `OWNER` | Permitido |
+
+Nas rotas `/api/v1/me/personal-profile/**`, a identidade é sempre obtida do `sub` do JWT; identificadores de usuário enviados pelo cliente não são aceitos. Leituras usam o usuário autenticado e mutações com `profileId` consultam simultaneamente perfil e proprietário. Um perfil pertencente a outra conta recebe o mesmo `404 PROFILE_NOT_FOUND` de um identificador inexistente, evitando confirmar sua existência.
+
+Os contratos públicos de perfil não expõem e-mail, telefone, WhatsApp, CREF ou chave de documento. O WhatsApp só é fornecido indiretamente pela URL retornada no endpoint explícito de início de contato, que também registra a métrica. Contratos administrativos de usuário podem expor dados operacionais da conta, mas nunca senha, hash, token ou segredo.
+
 ## Execução local
 
 Na raiz do repositório, inicie o PostgreSQL:

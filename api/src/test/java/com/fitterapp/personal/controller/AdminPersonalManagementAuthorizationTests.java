@@ -55,6 +55,17 @@ class AdminPersonalManagementAuthorizationTests {
   }
 
   @Test
+  void rejectsStudentCreation() throws Exception {
+    mockMvc
+        .perform(
+            post("/api/v1/admin/personal-profiles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validCreateBody(null))
+                .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_STUDENT"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void allowsAdministratorToCreateAccountAndProfile() throws Exception {
     UUID adminId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
@@ -79,6 +90,29 @@ class AdminPersonalManagementAuthorizationTests {
             header()
                 .string(
                     "Location", "/api/v1/admin/personal-profiles/" + profileId));
+  }
+
+  @Test
+  void allowsOwnerToCreateAccountAndProfile() throws Exception {
+    UUID ownerId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    UUID profileId = UUID.randomUUID();
+    UUID revisionId = UUID.randomUUID();
+    when(mapper.toCreateCommand(any(), any()))
+        .thenReturn(org.mockito.Mockito.mock(AdminCreatePersonalCommand.class));
+    when(service.create(any()))
+        .thenReturn(new AdminPersonalResult(userId, profileId, revisionId));
+
+    mockMvc
+        .perform(
+            post("/api/v1/admin/personal-profiles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validCreateBody(null))
+                .with(
+                    jwt()
+                        .jwt(builder -> builder.subject(ownerId.toString()))
+                        .authorities(new SimpleGrantedAuthority("ROLE_OWNER"))))
+        .andExpect(status().isCreated());
   }
 
   @Test

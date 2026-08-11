@@ -63,6 +63,15 @@ class AdminProfileAuthorizationTests {
   }
 
   @Test
+  void rejectsAStudentAccount() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/v1/admin/personal-profiles")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_STUDENT"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void allowsAnAdministratorToListProfiles() throws Exception {
     when(listAdminProfilesService.list(any(), any()))
         .thenReturn(org.springframework.data.domain.Page.empty());
