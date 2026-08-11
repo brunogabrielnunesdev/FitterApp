@@ -66,8 +66,12 @@ As rotas abaixo exigem a role `ADMIN` ou `OWNER`:
 - `PATCH /api/v1/admin/personal-profiles/{profileId}/rejection`: reprova a revisão; o corpo deve informar `reason`.
 - `PATCH /api/v1/admin/personal-profiles/{profileId}/suspension`: suspende um perfil aprovado ou publicado; o corpo deve informar `reason`.
 - `PATCH /api/v1/admin/personal-profiles/{profileId}/reactivation`: encerra a suspensão ativa e restaura o estado `APPROVED` ou `PUBLISHED` anterior; o corpo deve informar `reason`.
+- `POST /api/v1/admin/personal-profiles`: cria uma conta nova em confirmação de e-mail e um perfil em rascunho. A requisição recebe senha temporária, dados profissionais e motivo administrativo.
+- `PUT /api/v1/admin/personal-profiles/{profileId}`: edita os campos da revisão administrativa quando ela está em `DRAFT` ou `REJECTED`, reutilizando as validações de preço, modalidades, atendimento, regiões e CREF.
 
 Suspensão e reativação registram o administrador, o motivo, a data e os estados anterior e novo. Um perfil suspenso não pode ser republicado pelo titular e fica fora das consultas do catálogo até a reativação administrativa.
+
+O cadastro manual sempre cria uma conta nova; e-mails já existentes são rejeitados. A conta segue o fluxo normal de confirmação de e-mail e recebe inicialmente a role `STUDENT`. A role `PERSONAL` continua sendo concedida apenas após a aprovação do perfil. Criação e edição registram `origin: ADMIN` na auditoria, e a senha temporária nunca aparece nas respostas.
 
 O endpoint legado `GET /api/v1/admin/personal-profiles/pending-review` permanece disponível para compatibilidade com o painel existente.
 
