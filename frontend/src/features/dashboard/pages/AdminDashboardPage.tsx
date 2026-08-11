@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { Logo } from '../../../common/components/Logo'
 import { api } from '../../../common/services/api'
@@ -83,21 +83,25 @@ export function AdminDashboardPage() {
         </section>
 
         <section className="grid gap-4 lg:grid-cols-[1.25fr_.75fr]">
-          <article className="min-h-72 rounded-[30px] border border-[#292929] bg-[#111] p-7">
+          <article className="min-h-72 rounded-[30px] border border-[#7657ff]/30 bg-[#111] p-7">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold tracking-[.13em] text-[#7657ff]">PRÓXIMO MÓDULO</p>
-                <h2 className="mt-3 font-['Manrope'] text-2xl font-extrabold">Gestão de usuários</h2>
+                <p className="text-xs font-bold tracking-[.13em] text-[#7657ff]">MODERAÇÃO</p>
+                <h2 className="mt-3 font-['Manrope'] text-2xl font-extrabold">Fila de personais</h2>
               </div>
-              <span className="rounded-full border border-[#292929] px-3 py-1.5 text-xs text-[#777]">
-                EM BREVE
+              <span className="rounded-full border border-[#c7ff3d]/30 bg-[#c7ff3d]/10 px-3 py-1.5 text-xs font-bold text-[#c7ff3d]">
+                DISPONÍVEL
               </span>
             </div>
-            <div className="mt-12 space-y-3">
-              {[72, 54, 83].map((width) => (
-                <div className="h-3 rounded-full bg-[#1c1c1c]" key={width} style={{ width: `${width}%` }} />
-              ))}
-            </div>
+            <p className="mt-8 max-w-xl text-sm leading-6 text-[#aaaaaa]">
+              Analise os perfis enviados, aprove profissionais ou informe o que precisa ser
+              corrigido.
+            </p>
+            <Link
+              className="mt-7 inline-flex rounded-full bg-[#f6f4ee] px-5 py-3 text-sm font-extrabold text-[#080808] transition hover:bg-[#c7ff3d]"
+              to="/admin/personals/pending">
+              Abrir fila de análise
+            </Link>
           </article>
 
           <article className="rounded-[30px] border border-[#c7ff3d]/25 bg-[#c7ff3d] p-7 text-[#080808]">
