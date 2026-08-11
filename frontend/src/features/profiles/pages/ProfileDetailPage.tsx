@@ -345,10 +345,16 @@ export function ProfileDetailPage() {
   const profile = profileQuery.data
   const canModerate =
     profile?.status === 'PENDING_REVIEW' && profile.revision.status === 'PENDING_REVIEW'
+  const canEdit =
+    profile?.revision.status === 'DRAFT' || profile?.revision.status === 'REJECTED'
   const normalizedReason = rejectionReason.trim()
   const validReason =
     normalizedReason.length > 0 && normalizedReason.length <= REJECTION_REASON_MAX_LENGTH
   const cameFromQueue = location.state?.from === '/admin/personals/pending'
+  const managementMessage =
+    typeof location.state?.managementMessage === 'string'
+      ? location.state.managementMessage
+      : undefined
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 lg:py-14">
@@ -362,14 +368,29 @@ export function ProfileDetailPage() {
             Confira os dados profissionais, o registro e a cobertura antes de decidir.
           </p>
         </div>
-        <Link
-          className="w-fit shrink-0 rounded-full border border-[#333] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
-          to={cameFromQueue ? '/admin/personals/pending' : '/admin/personals'}>
-          {cameFromQueue ? 'Voltar à fila' : 'Voltar aos perfis'}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {profile && canEdit && (
+            <Link
+              className="w-fit shrink-0 rounded-full bg-[#c7ff3d] px-5 py-2.5 text-sm font-extrabold text-[#080808] transition hover:bg-[#d6ff70]"
+              to={`/admin/personals/${profile.profileId}/edit`}>
+              Editar perfil
+            </Link>
+          )}
+          <Link
+            className="w-fit shrink-0 rounded-full border border-[#333] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
+            to={cameFromQueue ? '/admin/personals/pending' : '/admin/personals'}>
+            {cameFromQueue ? 'Voltar à fila' : 'Voltar aos perfis'}
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8">
+          {managementMessage && (
+            <div className="mb-6 rounded-2xl border border-[#c7ff3d]/40 bg-[#c7ff3d]/10 px-5 py-4 text-sm" role="status">
+              <p className="font-bold text-[#e8ffad]">Operação concluída</p>
+              <p className="mt-1 text-[#f6f4ee]">{managementMessage}</p>
+            </div>
+          )}
           {feedback && (
             <ModerationFeedbackBanner feedback={feedback} onDismiss={() => setFeedback(undefined)} />
           )}

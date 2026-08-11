@@ -117,11 +117,18 @@ export function AdminProfilesPage() {
             Localize, consulte e modere os personais em todas as etapas do cadastro.
           </p>
         </div>
-        <Link
-          className="w-fit shrink-0 rounded-full border border-[#7657ff]/50 bg-[#7657ff]/10 px-5 py-3 text-sm font-bold text-[#b5a9ff] transition hover:border-[#9a84ff]"
-          to="/admin/personals/pending">
-          Abrir fila de análise
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            className="w-fit shrink-0 rounded-full border border-[#7657ff]/50 bg-[#7657ff]/10 px-5 py-3 text-sm font-bold text-[#b5a9ff] transition hover:border-[#9a84ff]"
+            to="/admin/personals/pending">
+            Abrir fila de análise
+          </Link>
+          <Link
+            className="w-fit shrink-0 rounded-full bg-[#c7ff3d] px-5 py-3 text-sm font-extrabold text-[#080808] transition hover:bg-[#d6ff70]"
+            to="/admin/personals/new">
+            Cadastrar personal
+          </Link>
+        </div>
       </div>
 
       <section aria-label="Filtros de perfis" className="mt-8 rounded-[24px] border border-[#292929] bg-[#111] p-5">
