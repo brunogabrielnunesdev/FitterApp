@@ -1,4 +1,5 @@
 import type { ModerationAction, PendingProfile } from '../types/moderation'
+import { Link } from 'react-router-dom'
 
 export const REJECTION_REASON_MAX_LENGTH = 500
 
@@ -42,13 +43,20 @@ export function PendingProfileCard({
             {profile.fullName}
           </h2>
         </div>
-        <button
-          className="rounded-full bg-[#c7ff3d] px-5 py-3 text-sm font-extrabold text-[#080808] transition hover:bg-[#d6ff70] disabled:cursor-wait disabled:opacity-55"
-          disabled={isProcessing}
-          onClick={onApprove}
-          type="button">
-          {processingAction === 'approve' ? 'Aprovando…' : 'Aprovar perfil'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            className="rounded-full border border-[#444] px-5 py-3 text-sm font-extrabold transition hover:border-[#7657ff] hover:text-[#a999ff]"
+            to={`/admin/personals/${profile.profileId}`}>
+            Analisar detalhes
+          </Link>
+          <button
+            className="rounded-full bg-[#c7ff3d] px-5 py-3 text-sm font-extrabold text-[#080808] transition hover:bg-[#d6ff70] disabled:cursor-wait disabled:opacity-55"
+            disabled={isProcessing}
+            onClick={onApprove}
+            type="button">
+            {processingAction === 'approve' ? 'Aprovando…' : 'Aprovar perfil'}
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 border-t border-[#292929] pt-5">
