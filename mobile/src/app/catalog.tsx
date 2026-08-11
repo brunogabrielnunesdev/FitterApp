@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -17,7 +17,10 @@ import { colors } from '@/common/theme/colors';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { ProfileCard } from '@/features/catalog/components/ProfileCard';
 import { useDebouncedValue } from '@/features/catalog/hooks/useDebouncedValue';
-import { listPublicProfiles } from '@/features/catalog/services/catalogService';
+import {
+  listActiveModalities,
+  listPublicProfiles,
+} from '@/features/catalog/services/catalogService';
 import {
   PublicProfileCard,
   ServiceMode,
@@ -35,16 +38,32 @@ const serviceModeFilters: { label: string; value?: ServiceMode }[] = [
 export default function CatalogScreen() {
   const { session } = useAuth();
   const [search, setSearch] = useState('');
+  const [modalityId, setModalityId] = useState<number>();
+  const [neighborhood, setNeighborhood] = useState('');
   const [serviceMode, setServiceMode] = useState<ServiceMode>();
   const debouncedSearch = useDebouncedValue(search.trim());
+  const debouncedNeighborhood = useDebouncedValue(neighborhood.trim());
+  const modalitiesQuery = useQuery({
+    queryKey: ['public-modalities'],
+    queryFn: listActiveModalities,
+    staleTime: 5 * 60 * 1000,
+  });
   const profilesQuery = useInfiniteQuery({
-    queryKey: ['public-profiles', debouncedSearch, serviceMode],
+    queryKey: [
+      'public-profiles',
+      debouncedSearch,
+      modalityId,
+      debouncedNeighborhood,
+      serviceMode,
+    ],
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       listPublicProfiles({
         page: pageParam,
         size: PAGE_SIZE,
         query: debouncedSearch,
+        modalityId,
+        neighborhood: debouncedNeighborhood,
         serviceMode,
       }),
     getNextPageParam: (lastPage) =>
@@ -87,8 +106,13 @@ export default function CatalogScreen() {
         ListHeaderComponent={
           <CatalogHeader
             search={search}
+            modalityId={modalityId}
+            modalities={modalitiesQuery.data ?? []}
+            neighborhood={neighborhood}
             serviceMode={serviceMode}
             onChangeSearch={setSearch}
+            onChangeModality={setModalityId}
+            onChangeNeighborhood={setNeighborhood}
             onChangeServiceMode={setServiceMode}
           />
         }
@@ -115,15 +139,25 @@ export default function CatalogScreen() {
 
 type CatalogHeaderProps = {
   search: string;
+  modalityId?: number;
+  modalities: { id: number; name: string; slug: string }[];
+  neighborhood: string;
   serviceMode?: ServiceMode;
   onChangeSearch: (value: string) => void;
+  onChangeModality: (value?: number) => void;
+  onChangeNeighborhood: (value: string) => void;
   onChangeServiceMode: (value?: ServiceMode) => void;
 };
 
 function CatalogHeader({
   search,
+  modalityId,
+  modalities,
+  neighborhood,
   serviceMode,
   onChangeSearch,
+  onChangeModality,
+  onChangeNeighborhood,
   onChangeServiceMode,
 }: CatalogHeaderProps) {
   return (
@@ -140,6 +174,17 @@ function CatalogHeader({
         style={styles.search}
         value={search}
       />
+      <TextInput
+        accessibilityLabel="Filtrar por bairro ou região"
+        autoCapitalize="words"
+        clearButtonMode="while-editing"
+        onChangeText={onChangeNeighborhood}
+        placeholder="Filtrar por bairro ou região"
+        placeholderTextColor={colors.gray}
+        returnKeyType="search"
+        style={styles.search}
+        value={neighborhood}
+      />
       <View style={styles.filters}>
         {serviceModeFilters.map((filter) => {
           const selected = filter.value === serviceMode;
@@ -155,6 +200,46 @@ function CatalogHeader({
           );
         })}
       </View>
+      {modalities.length > 0 && (
+        <View style={styles.filters}>
+          <Pressable
+            accessibilityLabel="Remover filtro de modalidade"
+            accessibilityRole="button"
+            onPress={() => onChangeModality(undefined)}
+            style={[styles.filter, modalityId === undefined && styles.filterSelected]}>
+            <Text style={[styles.filterLabel, modalityId === undefined && styles.filterLabelSelected]}>
+              Todas as modalidades
+            </Text>
+          </Pressable>
+          {modalities.map((modality) => {
+            const selected = modality.id === modalityId;
+            return (
+              <Pressable
+                accessibilityLabel={`Filtrar por ${modality.name}`}
+                accessibilityRole="button"
+                key={modality.id}
+                onPress={() => onChangeModality(selected ? undefined : modality.id)}
+                style={[styles.filter, selected && styles.filterSelected]}>
+                <Text style={[styles.filterLabel, selected && styles.filterLabelSelected]}>
+                  {modality.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+      {(modalityId !== undefined || neighborhood.trim()) && (
+        <Pressable
+          accessibilityLabel="Limpar filtros de modalidade e região"
+          accessibilityRole="button"
+          onPress={() => {
+            onChangeModality(undefined);
+            onChangeNeighborhood('');
+          }}
+          style={styles.clearFilters}>
+          <Text style={styles.clearFiltersLabel}>Limpar modalidade e região</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -208,6 +293,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
+  clearFilters: { alignSelf: 'flex-start', marginTop: 10, paddingVertical: 4 },
+  clearFiltersLabel: { color: colors.lime, fontSize: 12, fontWeight: '800' },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   filter: {
     borderColor: colors.line,

@@ -38,5 +38,7 @@ export type PublicProfilesQuery = {
   page: number;
   size: number;
   query?: string;
+  modalityId?: number;
+  neighborhood?: string;
   serviceMode?: ServiceMode;
 };

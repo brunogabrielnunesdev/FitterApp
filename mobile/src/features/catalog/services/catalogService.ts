@@ -10,11 +10,27 @@ export async function listPublicProfiles({
   page,
   size,
   query,
+  modalityId,
+  neighborhood,
   serviceMode,
 }: PublicProfilesQuery) {
   const { data } = await api.get<PublicProfilePage>('/api/v1/public/personals', {
-    params: { page, size, query: query || undefined, serviceMode },
+    params: {
+      page,
+      size,
+      query: query || undefined,
+      modalityId,
+      neighborhood: neighborhood || undefined,
+      serviceMode,
+    },
   });
+  return data;
+}
+
+export async function listActiveModalities() {
+  const { data } = await api.get<{ id: number; name: string; slug: string }[]>(
+    '/api/v1/public/modalities',
+  );
   return data;
 }
 
