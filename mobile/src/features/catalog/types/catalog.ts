@@ -1,4 +1,5 @@
 export type ServiceMode = 'IN_PERSON' | 'HOME_VISIT' | 'ONLINE';
+export type PriceUnit = 'PER_SESSION' | 'MONTHLY' | 'CONSULTATION';
 
 export type PublicProfileCard = {
   profileId: string;
@@ -7,7 +8,7 @@ export type PublicProfileCard = {
   biography: string | null;
   profileImageKey: string | null;
   startingPriceCents: number | null;
-  priceUnit: 'PER_SESSION' | 'PER_MONTH' | null;
+  priceUnit: PriceUnit | null;
 };
 
 export type PublicProfilePage = {
@@ -38,5 +39,8 @@ export type PublicProfilesQuery = {
   page: number;
   size: number;
   query?: string;
+  modalityId?: number;
+  neighborhood?: string;
   serviceMode?: ServiceMode;
+  idempotencyKey: string;
 };

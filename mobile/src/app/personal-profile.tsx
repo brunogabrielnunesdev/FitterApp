@@ -67,11 +67,11 @@ function PersonalProfileContent() {
       if (!profile) return;
       if (step === 0) await updateProfileDraft(profile.profileId, profile);
       if (step === 1) {
-        await updateCref(
-          profile.profileId,
-          profile.crefRegistrationCode!.trim(),
-          profile.crefDocumentImageKey!.trim(),
-        );
+        const registrationCode = profile.crefRegistrationCode?.trim();
+        const documentImageKey = profile.crefDocumentImageKey?.trim();
+        if (registrationCode && documentImageKey) {
+          await updateCref(profile.profileId, registrationCode, documentImageKey);
+        }
       }
       if (step === 2) await updateProfileModalities(profile.profileId, profile.modalityIds);
       if (step === 3) await updateServiceModes(profile.profileId, profile.serviceModes);
@@ -192,8 +192,9 @@ function PersonalProfileContent() {
 
         {step === 1 && (
           <>
-            <Field label="Número do CREF *" autoCapitalize="characters" value={profile.crefRegistrationCode ?? ''} error={errors.crefRegistrationCode} onChangeText={(crefRegistrationCode) => setProfile({ crefRegistrationCode })} />
-            <Field label="Referência do documento *" autoCapitalize="none" value={profile.crefDocumentImageKey ?? ''} error={errors.crefDocumentImageKey} onChangeText={(crefDocumentImageKey) => setProfile({ crefDocumentImageKey })} />
+            <Text style={styles.hint}>O CREF é opcional. Se optar por informá-lo, preencha o número e a referência do documento juntos.</Text>
+            <Field label="Número do CREF" autoCapitalize="characters" value={profile.crefRegistrationCode ?? ''} error={errors.crefRegistrationCode} onChangeText={(crefRegistrationCode) => setProfile({ crefRegistrationCode })} />
+            <Field label="Referência do documento" autoCapitalize="none" value={profile.crefDocumentImageKey ?? ''} error={errors.crefDocumentImageKey} onChangeText={(crefDocumentImageKey) => setProfile({ crefDocumentImageKey })} />
             <Text style={styles.hint}>Informe a chave ou URL do documento já armazenado. O seletor de arquivos será conectado quando o serviço de upload estiver disponível.</Text>
           </>
         )}
@@ -231,7 +232,7 @@ function PersonalProfileContent() {
         {step === 5 && (
           <>
             <ReviewSection title="Dados profissionais" onEdit={() => setStep(0)} lines={[profile.fullName, profile.biography, profile.whatsapp]} />
-            <ReviewSection title="CREF" onEdit={() => setStep(1)} lines={[profile.crefRegistrationCode, profile.crefDocumentImageKey ? 'Documento informado' : null]} />
+            <ReviewSection title="CREF" onEdit={() => setStep(1)} lines={profile.crefRegistrationCode && profile.crefDocumentImageKey ? [profile.crefRegistrationCode, 'Documento informado'] : ['Não informado']} />
             <ReviewSection title="Modalidades" onEdit={() => setStep(2)} lines={profile.modalityIds.map((id) => modalities.data?.find((item) => item.id === id)?.name ?? `Modalidade ${id}`)} />
             <ReviewSection title="Atendimento" onEdit={() => setStep(3)} lines={profile.serviceModes.map((mode) => serviceModeLabels[mode])} />
             <ReviewSection title="Regiões" onEdit={() => setStep(4)} lines={profile.serviceAreas.map(formatArea)} />
@@ -397,8 +398,15 @@ function validateStep(step: number, profile: ProfileDraft): FieldErrors {
     if (profile.experienceStartedYear && (profile.experienceStartedYear < 1900 || profile.experienceStartedYear > new Date().getFullYear())) errors.experienceStartedYear = 'Informe um ano válido.';
   }
   if (step === 1) {
-    if (!profile.crefRegistrationCode?.trim()) errors.crefRegistrationCode = 'Informe o número do CREF.';
-    if (!profile.crefDocumentImageKey?.trim()) errors.crefDocumentImageKey = 'Informe a referência do documento.';
+    const hasRegistrationCode = Boolean(profile.crefRegistrationCode?.trim());
+    const hasDocumentImageKey = Boolean(profile.crefDocumentImageKey?.trim());
+    if (profile.crefStatus && !hasRegistrationCode && !hasDocumentImageKey) {
+      errors.crefRegistrationCode = 'Um CREF já cadastrado não pode ser removido neste fluxo.';
+    }
+    if (hasRegistrationCode !== hasDocumentImageKey) {
+      if (!hasRegistrationCode) errors.crefRegistrationCode = 'Informe o número do CREF junto com o documento.';
+      if (!hasDocumentImageKey) errors.crefDocumentImageKey = 'Informe a referência do documento junto com o CREF.';
+    }
   }
   if (step === 2 && profile.modalityIds.length === 0) errors.modalityIds = 'Selecione ao menos uma modalidade.';
   if (step === 3 && profile.serviceModes.length === 0) errors.serviceModes = 'Selecione ao menos uma forma de atendimento.';
@@ -415,7 +423,8 @@ function validateStep(step: number, profile: ProfileDraft): FieldErrors {
 function getMissingItems(profile: ProfileDraft) {
   const missing: string[] = [];
   if (!profile.fullName?.trim() || !profile.biography?.trim() || !profile.whatsapp?.trim()) missing.push('dados profissionais');
-  if (!profile.crefRegistrationCode?.trim() || !profile.crefDocumentImageKey?.trim()) missing.push('CREF e documento');
+  if (profile.crefStatus && !profile.crefRegistrationCode?.trim() && !profile.crefDocumentImageKey?.trim()) missing.push('o CREF existente não pode ser removido');
+  if (Boolean(profile.crefRegistrationCode?.trim()) !== Boolean(profile.crefDocumentImageKey?.trim())) missing.push('CREF e documento devem ser informados juntos');
   if (profile.modalityIds.length === 0) missing.push('modalidade');
   if (profile.serviceModes.length === 0) missing.push('forma de atendimento');
   if (profile.serviceAreas.length === 0 || profile.serviceAreas.some((area) => !area.city.trim() || !/^[A-Za-z]{2}$/.test(area.stateCode.trim()))) missing.push('região válida');
