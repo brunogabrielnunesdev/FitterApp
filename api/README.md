@@ -44,7 +44,7 @@ Execute a verificação completa na pasta `api`:
 .\mvnw.cmd clean verify
 ```
 
-Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V9`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
+Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V10`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
 
 O workflow `.github/workflows/backend-ci.yml` valida o bootstrap do Wrapper no Windows e executa essa verificação completa em cada alteração da API.
 
@@ -121,6 +121,16 @@ A migration `V9` diferencia eventos brutos e únicos nas tabelas `search_events`
 As janelas móveis são de 5 minutos para pesquisa, 30 minutos para visualização de perfil e 10 minutos para contato por WhatsApp. A impressão digital considera usuário ou visitante, origem e os dados relevantes da ação. Paginação não cria outra pesquisa única quando termo e filtros permanecem iguais.
 
 Clientes devem enviar uma chave nova em `X-Idempotency-Key` para cada ação lógica e reutilizá-la somente em retries. Para tráfego anônimo, `X-Visitor-Id` identifica de forma estável a instalação ou sessão e permite deduplicação semântica entre requisições. Sem JWT e sem `X-Visitor-Id`, ações diferentes não são agrupadas para evitar unir visitantes distintos; ainda é possível eliminar um retry exato usando `X-Idempotency-Key`. Identificadores e chaves nunca são persistidos em claro nas estruturas de deduplicação, apenas hashes SHA-256.
+
+## Dashboard administrativo
+
+`GET /api/v1/admin/dashboard/funnel?from=2026-08-01&to=2026-08-31&timezone=America/Sao_Paulo` exige role `ADMIN` ou `OWNER` e retorna:
+
+- contas concluídas, perfis iniciados e enviados a partir de `funnel_events`;
+- aprovações e reprovações pela data histórica `reviewed_at` das revisões;
+- pesquisas, visualizações de perfil e contatos por WhatsApp, cada um com totais `raw` e `unique`.
+
+`from` e `to` são datas ISO-8601 obrigatórias e inclusivas no timezone informado. `timezone` aceita identificadores IANA e assume `America/Sao_Paulo`; a resposta explicita `startInclusive` e `endExclusive` com seus offsets. A consulta usa intervalo semiaberto, portanto inclui o início do primeiro dia e exclui exatamente o início do dia posterior a `to`, inclusive em transições de horário de verão. A migration `V10` adiciona os índices usados pelas agregações.
 
 ## Execução local
 

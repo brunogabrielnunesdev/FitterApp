@@ -1,5 +1,6 @@
 package com.fitterapp.common.exception;
 
+import com.fitterapp.analytics.exception.InvalidDashboardPeriodException;
 import com.fitterapp.auth.exception.AccountBlockedException;
 import com.fitterapp.auth.exception.AccountNotPendingVerificationException;
 import com.fitterapp.auth.exception.EmailAlreadyRegisteredException;
@@ -43,6 +44,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler(InvalidDashboardPeriodException.class)
+  ResponseEntity<ProblemDetail> handleInvalidDashboardPeriod(
+      InvalidDashboardPeriodException exception) {
+    return problem(HttpStatus.BAD_REQUEST, "INVALID_DASHBOARD_PERIOD", exception.getMessage());
+  }
 
   @ExceptionHandler(UserNotFoundException.class)
   ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException exception) {

@@ -47,6 +47,21 @@ class OperationsAndMetricsSchemaMigrationTests {
   }
 
   @Test
+  void createsDashboardQueryIndexes() {
+    List<String> indexes =
+        jdbcTemplate.queryForList(
+            "SELECT indexname FROM pg_indexes WHERE schemaname = 'public'", String.class);
+
+    assertThat(indexes)
+        .contains(
+            "ix_personal_profile_revisions_reviewed_at",
+            "ix_profile_view_events_occurred_at",
+            "ix_profile_view_events_unique_occurred_at",
+            "ix_contact_events_occurred_at",
+            "ix_contact_events_unique_occurred_at");
+  }
+
+  @Test
   void preventsAuditLogUpdates() {
     UUID actorId = insertUser("audit-actor@fitterapp.test");
     UUID logId = insertAuditLog(actorId);
