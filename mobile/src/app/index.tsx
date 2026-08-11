@@ -1,14 +1,11 @@
 import { Redirect } from 'expo-router';
-import { View } from 'react-native';
 
-import { colors } from '@/common/theme/colors';
+import { SessionLoadingScreen } from '@/common/components/session/SessionLoadingScreen';
 import { useAuth } from '@/features/auth/context/AuthContext';
-import { LoginScreen } from '@/features/auth/screens/LoginScreen';
 
 export default function IndexScreen() {
-  const { isLoading, session } = useAuth();
+  const { isLoading } = useAuth();
 
-  if (isLoading) return <View style={{ flex: 1, backgroundColor: colors.black }} />;
-  if (session) return <Redirect href="/home" />;
-  return <LoginScreen />;
+  if (isLoading) return <SessionLoadingScreen />;
+  return <Redirect href="/catalog" />;
 }

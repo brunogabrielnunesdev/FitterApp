@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
+import { SessionLoadingScreen } from '@/common/components/session/SessionLoadingScreen';
 import { colors } from '@/common/theme/colors';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import {
   createPersonalProfile,
   getOwnProfile,
@@ -36,6 +38,14 @@ const serviceModeLabels = {
 type FieldErrors = Record<string, string>;
 
 export default function PersonalProfileScreen() {
+  const { isLoading, session } = useAuth();
+
+  if (isLoading) return <SessionLoadingScreen />;
+  if (!session) return <Redirect href="/login?returnTo=%2Fpersonal-profile" />;
+  return <PersonalProfileContent />;
+}
+
+function PersonalProfileContent() {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
