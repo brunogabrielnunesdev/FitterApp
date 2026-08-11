@@ -30,10 +30,16 @@ export function ProfileCard({ profile, onPress }: ProfileCardProps) {
 }
 
 function formatPrice(profile: PublicProfileCard) {
-  if (!profile.startingPriceCents) return 'Valor a combinar';
+  if (profile.startingPriceCents === null) return 'Valor a combinar';
 
-  const unit = profile.priceUnit === 'PER_MONTH' ? '/ mês' : '/ sessão';
-  return `A partir de R$ ${(profile.startingPriceCents / 100).toFixed(0)} ${unit}`;
+  const unit = profile.priceUnit
+    ? {
+        PER_SESSION: '/ sessão',
+        MONTHLY: '/ mês',
+        CONSULTATION: '/ consulta',
+      }[profile.priceUnit]
+    : '';
+  return `A partir de R$ ${(profile.startingPriceCents / 100).toFixed(0)} ${unit}`.trim();
 }
 
 const styles = StyleSheet.create({

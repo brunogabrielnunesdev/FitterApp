@@ -1,6 +1,7 @@
 import { api } from '@/common/services/api';
 
 export type ServiceMode = 'IN_PERSON' | 'HOME_VISIT' | 'ONLINE';
+export type PriceUnit = 'PER_SESSION' | 'MONTHLY' | 'CONSULTATION';
 
 export type ServiceArea = {
   city: string;
@@ -22,7 +23,7 @@ export type ProfileDraft = {
   certifications: string | null;
   gymsDescription: string | null;
   startingPriceCents: number | null;
-  priceUnit: 'PER_SESSION' | 'PER_MONTH' | null;
+  priceUnit: PriceUnit | null;
   crefRegistrationCode: string | null;
   crefDocumentImageKey: string | null;
   crefStatus?: string | null;
@@ -62,7 +63,26 @@ export async function listModalities() {
 }
 
 export async function updateProfileDraft(profileId: string, data: Partial<ProfileDraft>) {
-  await api.put(`/api/v1/me/personal-profile/${profileId}`, data);
+  const {
+    fullName,
+    biography,
+    whatsapp,
+    experienceStartedYear,
+    certifications,
+    gymsDescription,
+    startingPriceCents,
+    priceUnit,
+  } = data;
+  await api.put(`/api/v1/me/personal-profile/${profileId}`, {
+    fullName,
+    biography,
+    whatsapp,
+    experienceStartedYear,
+    certifications,
+    gymsDescription,
+    startingPriceCents,
+    priceUnit,
+  });
 }
 
 export async function updateProfileModalities(profileId: string, modalityIds: number[]) {

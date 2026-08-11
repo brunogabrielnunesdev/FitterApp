@@ -100,6 +100,11 @@ export default function CatalogScreen() {
     );
   }
 
+  function startNewCatalogIntent(action: () => void) {
+    searchIntentKeys.current.clear();
+    action();
+  }
+
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>
@@ -147,10 +152,10 @@ export default function CatalogScreen() {
             modalitiesError={modalitiesQuery.isError}
             neighborhood={neighborhood}
             serviceMode={serviceMode}
-            onChangeSearch={setSearch}
-            onChangeModality={setModalityId}
-            onChangeNeighborhood={setNeighborhood}
-            onChangeServiceMode={setServiceMode}
+            onChangeSearch={(value) => startNewCatalogIntent(() => setSearch(value))}
+            onChangeModality={(value) => startNewCatalogIntent(() => setModalityId(value))}
+            onChangeNeighborhood={(value) => startNewCatalogIntent(() => setNeighborhood(value))}
+            onChangeServiceMode={(value) => startNewCatalogIntent(() => setServiceMode(value))}
             onRetryModalities={() => modalitiesQuery.refetch()}
           />
         }
@@ -165,7 +170,10 @@ export default function CatalogScreen() {
             colors={[colors.lime]}
             refreshing={profilesQuery.isRefetching && !profilesQuery.isFetchingNextPage}
             tintColor={colors.lime}
-            onRefresh={() => queryClient.resetQueries({ queryKey: catalogQueryKey })}
+            onRefresh={() => {
+              searchIntentKeys.current.clear();
+              void queryClient.resetQueries({ queryKey: catalogQueryKey });
+            }}
           />
         }
         renderItem={renderProfile}
