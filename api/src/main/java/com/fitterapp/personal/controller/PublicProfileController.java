@@ -1,5 +1,7 @@
 package com.fitterapp.personal.controller;
 
+import com.fitterapp.analytics.entity.event.EventSource;
+import com.fitterapp.analytics.service.PublicCatalogEventService;
 import com.fitterapp.personal.dto.publicprofile.*;
 import com.fitterapp.personal.entity.service.ServiceMode;
 import com.fitterapp.personal.mapper.PublicProfileMapper;
@@ -22,6 +24,7 @@ public class PublicProfileController {
   private final ListPublicProfilesService listService;
   private final GetPublicProfileService getService;
   private final StartWhatsappContactService contactService;
+  private final PublicCatalogEventService eventService;
   private final PublicProfileMapper mapper;
 
   @GetMapping
@@ -30,8 +33,10 @@ public class PublicProfileController {
       @RequestParam(required = false) Short modalityId,
       @RequestParam(required = false) String neighborhood,
       @RequestParam(required = false) ServiceMode serviceMode,
+      @RequestParam(defaultValue = "PUBLIC_WEB") EventSource source,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size) {
+      @RequestParam(defaultValue = "20") int size,
+      @AuthenticationPrincipal Jwt jwt) {
     int safePage = Math.max(page, 0), safeSize = Math.min(Math.max(size, 1), 50);
     var result =
         listService.list(
@@ -40,18 +45,36 @@ public class PublicProfileController {
             neighborhood,
             serviceMode,
             PageRequest.of(safePage, safeSize, Sort.unsorted()));
+    eventService.recordSearch(
+        userId(jwt),
+        source,
+        query,
+        modalityId,
+        neighborhood,
+        serviceMode,
+        safePage,
+        safeSize,
+        result.getTotalElements());
     return ResponseEntity.ok(mapper.toPage(result));
   }
 
   @GetMapping("/{slug}")
-  public ResponseEntity<PublicProfileDetailDto> get(@PathVariable String slug) {
-    return ResponseEntity.ok(mapper.toDetail(getService.get(slug)));
+  public ResponseEntity<PublicProfileDetailDto> get(
+      @PathVariable String slug,
+      @RequestParam(defaultValue = "PUBLIC_WEB") EventSource source,
+      @AuthenticationPrincipal Jwt jwt) {
+    var result = getService.get(slug);
+    eventService.recordPersonalView(userId(jwt), source, result.profile());
+    return ResponseEntity.ok(mapper.toDetail(result));
   }
 
   @PostMapping("/{slug}/contact/whatsapp")
   public ResponseEntity<WhatsappContactResponseDto> startWhatsappContact(
-      @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) {
-    var result = contactService.start(new StartWhatsappContactCommand(slug, userId(jwt)));
+      @PathVariable String slug,
+      @RequestParam(defaultValue = "PUBLIC_WEB") EventSource source,
+      @AuthenticationPrincipal Jwt jwt) {
+    var result =
+        contactService.start(new StartWhatsappContactCommand(slug, userId(jwt), source));
     return ResponseEntity.ok(new WhatsappContactResponseDto(result.whatsappUrl()));
   }
 

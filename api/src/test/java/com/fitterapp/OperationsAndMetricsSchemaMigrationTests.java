@@ -40,7 +40,8 @@ class OperationsAndMetricsSchemaMigrationTests {
             "search_events",
             "profile_view_events",
             "contact_events",
-            "app_access_events");
+            "app_access_events",
+            "funnel_events");
   }
 
   @Test
@@ -151,6 +152,28 @@ class OperationsAndMetricsSchemaMigrationTests {
             personalId);
 
     assertThat(count).isEqualTo(1);
+  }
+
+  @Test
+  void enforcesFunnelEventTargetForItsType() {
+    UUID userId = insertUser("funnel-constraint@fitterapp.test");
+    UUID personalId = insertPersonal(userId, "funnel-constraint-personal");
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    """
+                INSERT INTO funnel_events (
+                    id, user_id, personal_profile_id, event_type, source, occurred_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                    UUID.randomUUID(),
+                    userId,
+                    personalId,
+                    "ACCOUNT_COMPLETED",
+                    "MOBILE_APP",
+                    now()))
+        .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   private UUID insertAuditLog(UUID actorId) {

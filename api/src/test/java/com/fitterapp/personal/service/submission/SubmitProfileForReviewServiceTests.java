@@ -2,8 +2,14 @@ package com.fitterapp.personal.service.submission;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fitterapp.analytics.entity.event.FunnelEvent;
+import com.fitterapp.analytics.entity.event.FunnelEventType;
+import com.fitterapp.analytics.repository.FunnelEventRepository;
 import com.fitterapp.personal.entity.cref.Cref;
 import com.fitterapp.personal.entity.profile.Profile;
 import com.fitterapp.personal.entity.profile.ProfileRevision;
@@ -32,6 +38,7 @@ class SubmitProfileForReviewServiceTests {
   @Mock RevisionModalityRepository modalities;
   @Mock RevisionServiceModeRepository modes;
   @Mock RevisionServiceAreaRepository areas;
+  @Mock FunnelEventRepository funnelEvents;
 
   @Test
   void submitsCompleteDraftWithoutCref() {
@@ -41,6 +48,10 @@ class SubmitProfileForReviewServiceTests {
     assertThat(f.revision.getStatus()).isEqualTo(ProfileRevisionStatus.PENDING_REVIEW);
     assertThat(f.revision.getCref()).isNull();
     assertThat(result.revisionId()).isEqualTo(f.revisionId);
+    var captor = org.mockito.ArgumentCaptor.forClass(FunnelEvent.class);
+    verify(funnelEvents).save(captor.capture());
+    assertThat(captor.getValue().getEventType()).isEqualTo(FunnelEventType.PROFILE_SUBMITTED);
+    assertThat(captor.getValue().getPersonalProfile()).isSameAs(f.profile);
   }
 
   @Test
@@ -63,6 +74,7 @@ class SubmitProfileForReviewServiceTests {
             () -> service().submit(new SubmitProfileForReviewCommand(f.userId, f.profileId)))
         .isInstanceOf(IncompleteProfileException.class);
     assertThat(f.revision.getStatus()).isEqualTo(ProfileRevisionStatus.DRAFT);
+    verify(funnelEvents, never()).save(any());
   }
 
   private void stub(Fixture f, long modalityCount, long modeCount, long areaCount) {
@@ -74,7 +86,7 @@ class SubmitProfileForReviewServiceTests {
 
   private SubmitProfileForReviewService service() {
     return new SubmitProfileForReviewService(
-        profiles, modalities, modes, areas, Clock.fixed(NOW, ZoneOffset.UTC));
+        profiles, modalities, modes, areas, Clock.fixed(NOW, ZoneOffset.UTC), funnelEvents);
   }
 
   private Fixture fixture(boolean complete, boolean withCref) {

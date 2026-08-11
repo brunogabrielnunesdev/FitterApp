@@ -1,5 +1,7 @@
 package com.fitterapp.personal.service.submission;
 
+import com.fitterapp.analytics.entity.event.FunnelEvent;
+import com.fitterapp.analytics.repository.FunnelEventRepository;
 import com.fitterapp.personal.entity.profile.ProfileRevisionStatus;
 import com.fitterapp.personal.exception.IncompleteProfileException;
 import com.fitterapp.personal.exception.ProfileNotFoundException;
@@ -22,6 +24,7 @@ public class SubmitProfileForReviewService {
   private final RevisionServiceModeRepository revisionServiceModeRepository;
   private final RevisionServiceAreaRepository revisionServiceAreaRepository;
   private final Clock clock;
+  private final FunnelEventRepository funnelEvents;
 
   @Transactional
   public SubmitProfileForReviewResult submit(SubmitProfileForReviewCommand command) {
@@ -39,6 +42,8 @@ public class SubmitProfileForReviewService {
     OffsetDateTime now = OffsetDateTime.now(clock);
     revision.submit(now);
     profile.submitForReview(now);
+    funnelEvents.save(
+        FunnelEvent.profileSubmitted(profile.getUser(), profile, command.source(), now));
     return new SubmitProfileForReviewResult(profile.getId(), revision.getId());
   }
 

@@ -56,4 +56,21 @@ class StartWhatsappContactServiceTests {
     assertThat(eventCaptor.getValue().getSource()).isEqualTo(EventSource.MOBILE_APP);
     verify(users, never()).findById(any());
   }
+
+  @Test
+  void recordsTheSourceProvidedByThePublicClient() {
+    Clock clock = Clock.fixed(Instant.parse("2026-08-03T22:00:00Z"), ZoneOffset.UTC);
+    StartWhatsappContactService service =
+        new StartWhatsappContactService(profiles, users, contactEvents, clock);
+    when(profiles.findPublishedBySlug("bruno-personal")).thenReturn(Optional.of(profile));
+    when(profile.getPublishedRevision()).thenReturn(revision);
+    when(revision.getWhatsapp()).thenReturn("+5544999999999");
+
+    service.start(
+        new StartWhatsappContactCommand("bruno-personal", null, EventSource.PUBLIC_WEB));
+
+    ArgumentCaptor<ContactEvent> eventCaptor = ArgumentCaptor.forClass(ContactEvent.class);
+    verify(contactEvents).save(eventCaptor.capture());
+    assertThat(eventCaptor.getValue().getSource()).isEqualTo(EventSource.PUBLIC_WEB);
+  }
 }

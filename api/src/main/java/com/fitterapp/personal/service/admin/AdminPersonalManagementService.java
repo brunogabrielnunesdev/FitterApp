@@ -1,6 +1,7 @@
 package com.fitterapp.personal.service.admin;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fitterapp.analytics.entity.event.EventSource;
 import com.fitterapp.analytics.entity.audit.AdminAuditLog;
 import com.fitterapp.analytics.entity.audit.AuditTargetType;
 import com.fitterapp.analytics.repository.AdminAuditLogRepository;
@@ -55,8 +56,11 @@ public class AdminPersonalManagementService {
                 command.accountFullName(),
                 command.email(),
                 command.phoneNumber(),
-                command.temporaryPassword()));
-    var created = createProfileService.create(new CreateProfileCommand(registration.userId()));
+                command.temporaryPassword(),
+                EventSource.ADMIN_WEB));
+    var created =
+        createProfileService.create(
+            new CreateProfileCommand(registration.userId(), EventSource.ADMIN_WEB));
     apply(registration.userId(), created.profileId(), command.profile());
     OffsetDateTime now = OffsetDateTime.now(clock);
     auditLogs.save(

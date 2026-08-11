@@ -1,5 +1,7 @@
 package com.fitterapp.personal.service.create;
 
+import com.fitterapp.analytics.entity.event.FunnelEvent;
+import com.fitterapp.analytics.repository.FunnelEventRepository;
 import com.fitterapp.personal.entity.profile.Profile;
 import com.fitterapp.personal.entity.profile.ProfileRevision;
 import com.fitterapp.personal.exception.ProfileAlreadyExistsException;
@@ -22,6 +24,7 @@ public class CreateProfileService {
   private final ProfileRevisionRepository profileRevisionRepository;
   private final ProfileSlugGenerator slugGenerator;
   private final Clock clock;
+  private final FunnelEventRepository funnelEvents;
 
   @Transactional
   public CreateProfileResult create(CreateProfileCommand command) {
@@ -42,6 +45,7 @@ public class CreateProfileService {
     ProfileRevision revision = ProfileRevision.draft(profile, 1, user, true, createdAt);
     profileRevisionRepository.save(revision);
     profile.setCurrentRevision(revision, createdAt);
+    funnelEvents.save(FunnelEvent.profileStarted(user, profile, command.source(), createdAt));
 
     return new CreateProfileResult(profile.getId(), revision.getId());
   }

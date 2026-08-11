@@ -7,6 +7,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fitterapp.analytics.entity.event.EventSource;
+import com.fitterapp.analytics.entity.event.FunnelEvent;
+import com.fitterapp.analytics.entity.event.FunnelEventType;
+import com.fitterapp.analytics.repository.FunnelEventRepository;
 import com.fitterapp.auth.entity.EmailVerificationToken;
 import com.fitterapp.auth.exception.EmailAlreadyRegisteredException;
 import com.fitterapp.auth.exception.RoleNotConfiguredException;
@@ -64,6 +68,8 @@ class RegisterServiceTests {
 
   @Mock private EmailVerificationPolicy emailVerificationPolicy;
 
+  @Mock private FunnelEventRepository funnelEvents;
+
   @Mock private Role studentRole;
 
   private RegisterService registerService;
@@ -82,7 +88,8 @@ class RegisterServiceTests {
             tokenHasher,
             eventPublisher,
             clock,
-            emailVerificationPolicy);
+            emailVerificationPolicy,
+            funnelEvents);
   }
 
   @Test
@@ -115,10 +122,12 @@ class RegisterServiceTests {
     ArgumentCaptor<UserRole> roleCaptor = ArgumentCaptor.forClass(UserRole.class);
     ArgumentCaptor<EmailVerificationToken> tokenCaptor =
         ArgumentCaptor.forClass(EmailVerificationToken.class);
+    ArgumentCaptor<FunnelEvent> funnelCaptor = ArgumentCaptor.forClass(FunnelEvent.class);
 
     verify(userRepository).save(userCaptor.capture());
     verify(userRoleRepository).save(roleCaptor.capture());
     verify(verificationTokenRepository).save(tokenCaptor.capture());
+    verify(funnelEvents).save(funnelCaptor.capture());
 
     User user = userCaptor.getValue();
     assertThat(user.getFullName()).isEqualTo("Bruno Gabriel");
@@ -140,6 +149,11 @@ class RegisterServiceTests {
     assertThat(token.getUsedAt()).isNull();
 
     assertThat(result.userId()).isEqualTo(generatedUserId);
+    assertThat(funnelCaptor.getValue().getEventType())
+        .isEqualTo(FunnelEventType.ACCOUNT_COMPLETED);
+    assertThat(funnelCaptor.getValue().getUser()).isSameAs(user);
+    assertThat(funnelCaptor.getValue().getSource()).isEqualTo(EventSource.MOBILE_APP);
+    assertThat(funnelCaptor.getValue().getOccurredAt().toInstant()).isEqualTo(NOW);
     verify(eventPublisher)
         .publishEvent(
             new VerificationEmailRequested(
@@ -163,6 +177,7 @@ class RegisterServiceTests {
     verify(userRepository, never()).save(any());
     verify(userRoleRepository, never()).save(any());
     verify(verificationTokenRepository, never()).save(any());
+    verify(funnelEvents, never()).save(any());
     verify(eventPublisher, never()).publishEvent(any());
     verify(passwordEncoder, never()).encode(any());
   }

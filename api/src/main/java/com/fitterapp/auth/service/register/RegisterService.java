@@ -1,5 +1,7 @@
 package com.fitterapp.auth.service.register;
 
+import com.fitterapp.analytics.entity.event.FunnelEvent;
+import com.fitterapp.analytics.repository.FunnelEventRepository;
 import com.fitterapp.auth.entity.EmailVerificationToken;
 import com.fitterapp.auth.exception.EmailAlreadyRegisteredException;
 import com.fitterapp.auth.exception.RoleNotConfiguredException;
@@ -41,6 +43,7 @@ public class RegisterService {
   private final ApplicationEventPublisher eventPublisher;
   private final Clock clock;
   private final EmailVerificationPolicy emailVerificationPolicy;
+  private final FunnelEventRepository funnelEvents;
 
   @Transactional
   public RegisterResult register(RegisterCommand command) {
@@ -64,6 +67,7 @@ public class RegisterService {
             now);
     userRepository.save(user);
     userRoleRepository.save(UserRole.grantedBySystem(user, studentRole, now));
+    funnelEvents.save(FunnelEvent.accountCompleted(user, command.source(), now));
 
     if (!emailVerificationPolicy.isRequired()) {
       user.confirmEmail(now);

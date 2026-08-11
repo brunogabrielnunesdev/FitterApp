@@ -7,6 +7,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fitterapp.analytics.entity.event.FunnelEvent;
+import com.fitterapp.analytics.entity.event.FunnelEventType;
+import com.fitterapp.analytics.repository.FunnelEventRepository;
 import com.fitterapp.personal.entity.profile.Profile;
 import com.fitterapp.personal.entity.profile.ProfileRevision;
 import com.fitterapp.personal.entity.profile.ProfileRevisionStatus;
@@ -41,6 +44,8 @@ class CreateProfileServiceTests {
 
   @Mock private ProfileRevisionRepository profileRevisionRepository;
 
+  @Mock private FunnelEventRepository funnelEvents;
+
   private CreateProfileService service;
 
   @BeforeEach
@@ -51,7 +56,8 @@ class CreateProfileServiceTests {
             profileRepository,
             profileRevisionRepository,
             new ProfileSlugGenerator(),
-            Clock.fixed(NOW, ZoneOffset.UTC));
+            Clock.fixed(NOW, ZoneOffset.UTC),
+            funnelEvents);
   }
 
   @Test
@@ -90,6 +96,8 @@ class CreateProfileServiceTests {
     ArgumentCaptor<ProfileRevision> revisionCaptor = ArgumentCaptor.forClass(ProfileRevision.class);
     verify(profileRepository).save(profileCaptor.capture());
     verify(profileRevisionRepository).save(revisionCaptor.capture());
+    ArgumentCaptor<FunnelEvent> funnelCaptor = ArgumentCaptor.forClass(FunnelEvent.class);
+    verify(funnelEvents).save(funnelCaptor.capture());
 
     Profile profile = profileCaptor.getValue();
     ProfileRevision revision = revisionCaptor.getValue();
@@ -104,6 +112,9 @@ class CreateProfileServiceTests {
     assertThat(revision.isRequiresReview()).isTrue();
     assertThat(revision.getStatus()).isEqualTo(ProfileRevisionStatus.DRAFT);
     assertThat(result).isEqualTo(new CreateProfileResult(profileId, revisionId));
+    assertThat(funnelCaptor.getValue().getEventType()).isEqualTo(FunnelEventType.PROFILE_STARTED);
+    assertThat(funnelCaptor.getValue().getUser()).isSameAs(user);
+    assertThat(funnelCaptor.getValue().getPersonalProfile()).isSameAs(profile);
   }
 
   @Test
@@ -117,6 +128,7 @@ class CreateProfileServiceTests {
     verify(userRepository, never()).findById(any());
     verify(profileRepository, never()).save(any());
     verify(profileRevisionRepository, never()).save(any());
+    verify(funnelEvents, never()).save(any());
   }
 
   @Test
@@ -130,5 +142,6 @@ class CreateProfileServiceTests {
 
     verify(profileRepository, never()).save(any());
     verify(profileRevisionRepository, never()).save(any());
+    verify(funnelEvents, never()).save(any());
   }
 }

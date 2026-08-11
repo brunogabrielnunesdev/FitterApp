@@ -44,7 +44,7 @@ Execute a verificação completa na pasta `api`:
 .\mvnw.cmd clean verify
 ```
 
-Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V7`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
+Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V8`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
 
 O workflow `.github/workflows/backend-ci.yml` valida o bootstrap do Wrapper no Windows e executa essa verificação completa em cada alteração da API.
 
@@ -94,6 +94,21 @@ As rotas administrativas exigem a role `ADMIN` ou `OWNER`:
 - `PATCH /api/v1/admin/modalities/{modalityId}/activation`: ativa ou desativa usando o corpo `{"active": true|false}`.
 
 Nomes são únicos sem diferenciar maiúsculas e minúsculas. A desativação preserva os vínculos históricos, mas remove a modalidade de `GET /api/v1/public/modalities` e impede sua seleção em novos cadastros ou revisões.
+
+## Eventos do funil
+
+As etapas do funil do MVP são persistidas com origem, usuário quando identificado e timestamp UTC:
+
+| Etapa | Evento/tabela | Origem |
+| --- | --- | --- |
+| Cadastro concluído com sucesso | `ACCOUNT_COMPLETED` em `funnel_events` | `MOBILE_APP` no cadastro comum e `ADMIN_WEB` no cadastro manual |
+| Perfil profissional criado | `PROFILE_STARTED` em `funnel_events` | `MOBILE_APP` ou `ADMIN_WEB`, conforme o fluxo |
+| Perfil enviado para análise | `PROFILE_SUBMITTED` em `funnel_events` | `MOBILE_APP` |
+| Pesquisa e filtros do catálogo | `search_events` | parâmetro `source` da consulta |
+| Visualização de perfil | `profile_view_events` | parâmetro `source` da consulta |
+| Início de contato por WhatsApp | `contact_events` | parâmetro `source` da requisição |
+
+Nas rotas públicas de personal, `source` aceita `MOBILE_APP`, `PUBLIC_WEB` ou `ADMIN_WEB` e assume `PUBLIC_WEB` quando omitido. Pesquisas registram o termo normalizado, filtros efetivamente recebidos, paginação e total de resultados. Visualizações e contatos podem ser anônimos; quando um JWT válido é enviado, o usuário também é associado ao evento. A migration `V8` cria `funnel_events`; as tabelas de pesquisa, visualização e contato permanecem as definidas na `V6`.
 
 ## Execução local
 

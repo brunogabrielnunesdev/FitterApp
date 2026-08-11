@@ -16,6 +16,7 @@ import org.mapstruct.Mapping;
 @Mapper(config = CentralMapperConfig.class)
 public interface AuthMapper {
 
+  @Mapping(target = "source", constant = "MOBILE_APP")
   RegisterCommand toCommand(RegisterRequestDto request);
 
   RegisterResponseDto toResponse(RegisterResult result);
