@@ -46,6 +46,7 @@ export function PendingProfileCard({
         <div className="flex flex-wrap gap-2">
           <Link
             className="rounded-full border border-[#444] px-5 py-3 text-sm font-extrabold transition hover:border-[#7657ff] hover:text-[#a999ff]"
+            state={{ from: '/admin/personals/pending' }}
             to={`/admin/personals/${profile.profileId}`}>
             Analisar detalhes
           </Link>

@@ -8,7 +8,7 @@ const navigation = [
   { label: 'Dashboard', to: '/admin', matches: (path: string) => path === '/admin' },
   {
     label: 'Perfis',
-    to: '/admin/personals/pending',
+    to: '/admin/personals',
     matches: (path: string) => path.startsWith('/admin/personals'),
   },
   {

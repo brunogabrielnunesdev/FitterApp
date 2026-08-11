@@ -1,12 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { ModerationFeedbackBanner } from '../components/ModerationFeedbackBanner'
+import { ProfileLifecyclePanel } from '../components/ProfileLifecyclePanel'
 import { ProfileDetailState } from '../components/ProfileDetailState'
 import { REJECTION_REASON_MAX_LENGTH } from '../components/PendingProfileCard'
-import { getAdminProfile } from '../services/adminProfileService'
+import { getAdminProfile, moderateProfile } from '../services/adminProfileService'
 import { approveProfile, rejectProfile } from '../services/profileModerationService'
+import { profileQueryKeys } from '../services/profileQueryKeys'
 import type { ModerationAction, ModerationFeedback } from '../types/moderation'
 import type {
   AccountStatus,
@@ -17,7 +19,9 @@ import type {
   RevisionStatus,
   ServiceMode,
 } from '../types/profileDetail'
+import type { ProfileLifecycleAction } from '../types/profileManagement'
 import { getModerationErrorMessage } from '../utils/getModerationErrorMessage'
+import { getProfileLifecycleErrorMessage } from '../utils/getProfileLifecycleErrorMessage'
 
 const profileStatusLabels: Record<ProfileStatus, string> = {
   DRAFT: 'Rascunho',
@@ -250,11 +254,14 @@ function ProfileContent({ profile }: { profile: AdminProfileDetail }) {
 
 export function ProfileDetailPage() {
   const { profileId = '' } = useParams()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const [rejectionReason, setRejectionReason] = useState('')
   const [processingAction, setProcessingAction] = useState<ModerationAction>()
+  const [processingLifecycleAction, setProcessingLifecycleAction] =
+    useState<ProfileLifecycleAction>()
   const [feedback, setFeedback] = useState<ModerationFeedback>()
-  const profileQueryKey = ['admin-personal-profile', profileId] as const
+  const profileQueryKey = profileQueryKeys.detail(profileId)
   const profileQuery = useQuery({
     queryKey: profileQueryKey,
     queryFn: () => getAdminProfile(profileId),
@@ -287,7 +294,7 @@ export function ProfileDetailPage() {
             : `${profile.revision.fullName} foi reprovado e poderá corrigir o perfil.`,
       })
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['pending-personal-profiles'] }),
+        queryClient.invalidateQueries({ queryKey: profileQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: profileQueryKey }),
       ])
     } catch (error) {
@@ -303,12 +310,45 @@ export function ProfileDetailPage() {
     }
   }
 
+  async function runLifecycleAction(action: ProfileLifecycleAction, reason: string) {
+    const profile = profileQuery.data
+    if (!profile) return
+    setProcessingLifecycleAction(action)
+    setFeedback(undefined)
+
+    try {
+      const result = await moderateProfile(profile.profileId, action, reason)
+      setFeedback({
+        profileId: profile.profileId,
+        profileName: profile.revision.fullName,
+        action,
+        status: 'success',
+        message:
+          action === 'suspend'
+            ? `${profile.revision.fullName} foi suspenso e removido do catálogo.`
+            : `${profile.revision.fullName} foi reativado com status ${profileStatusLabels[result.profileStatus].toLocaleLowerCase('pt-BR')}.`,
+      })
+      await queryClient.invalidateQueries({ queryKey: profileQueryKeys.all })
+    } catch (error) {
+      setFeedback({
+        profileId: profile.profileId,
+        profileName: profile.revision.fullName,
+        action,
+        status: 'error',
+        message: getProfileLifecycleErrorMessage(error, action),
+      })
+    } finally {
+      setProcessingLifecycleAction(undefined)
+    }
+  }
+
   const profile = profileQuery.data
   const canModerate =
     profile?.status === 'PENDING_REVIEW' && profile.revision.status === 'PENDING_REVIEW'
   const normalizedReason = rejectionReason.trim()
   const validReason =
     normalizedReason.length > 0 && normalizedReason.length <= REJECTION_REASON_MAX_LENGTH
+  const cameFromQueue = location.state?.from === '/admin/personals/pending'
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 lg:py-14">
@@ -324,8 +364,8 @@ export function ProfileDetailPage() {
         </div>
         <Link
           className="w-fit shrink-0 rounded-full border border-[#333] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
-          to="/admin/personals/pending">
-          Voltar à fila
+          to={cameFromQueue ? '/admin/personals/pending' : '/admin/personals'}>
+          {cameFromQueue ? 'Voltar à fila' : 'Voltar aos perfis'}
         </Link>
       </div>
 
@@ -385,6 +425,15 @@ export function ProfileDetailPage() {
               </div>
             </div>
           </section>
+      )}
+      {profile && (
+        <ProfileLifecyclePanel
+          isProcessing={processingLifecycleAction !== undefined}
+          key={profile.status}
+          onConfirm={(action, reason) => void runLifecycleAction(action, reason)}
+          profileName={profile.revision.fullName}
+          status={profile.status}
+        />
       )}
     </div>
   )

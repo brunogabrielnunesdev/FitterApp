@@ -6,6 +6,7 @@ import { AdminSectionUnavailable } from '../../common/components/AdminSectionUna
 import { AdminLoginPage } from '../../features/auth/pages/AdminLoginPage'
 import { AdminDashboardPage } from '../../features/dashboard/pages/AdminDashboardPage'
 import { PendingProfilesPage } from '../../features/profiles/pages/PendingProfilesPage'
+import { AdminProfilesPage } from '../../features/profiles/pages/AdminProfilesPage'
 import { ProfileDetailPage } from '../../features/profiles/pages/ProfileDetailPage'
 import { PasswordRecoveryPage } from '../../features/auth/pages/PasswordRecoveryPage'
 
@@ -18,6 +19,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/personals" element={<AdminProfilesPage />} />
           <Route path="/admin/personals/pending" element={<PendingProfilesPage />} />
           <Route path="/admin/personals/:profileId" element={<ProfileDetailPage />} />
           <Route

@@ -9,6 +9,7 @@ import {
   listPendingProfiles,
   rejectProfile,
 } from '../services/profileModerationService'
+import { profileQueryKeys } from '../services/profileQueryKeys'
 import type {
   ModerationAction,
   ModerationFeedback,
@@ -16,24 +17,22 @@ import type {
 } from '../types/moderation'
 import { getModerationErrorMessage } from '../utils/getModerationErrorMessage'
 
-const pendingProfilesQueryKey = ['pending-personal-profiles'] as const
-
 export function PendingProfilesPage() {
   const queryClient = useQueryClient()
   const [reasonByProfile, setReasonByProfile] = useState<Record<string, string>>({})
   const [processingByProfile, setProcessingByProfile] = useState<Record<string, ModerationAction>>({})
   const [feedbacks, setFeedbacks] = useState<ModerationFeedback[]>([])
   const pendingQuery = useQuery({
-    queryKey: pendingProfilesQueryKey,
+    queryKey: profileQueryKeys.pending,
     queryFn: listPendingProfiles,
     retry: false,
   })
 
   function removeFromQueue(profileId: string) {
-    queryClient.setQueryData<PendingProfile[]>(pendingProfilesQueryKey, (profiles) =>
+    queryClient.setQueryData<PendingProfile[]>(profileQueryKeys.pending, (profiles) =>
       profiles?.filter((profile) => profile.profileId !== profileId),
     )
-    void queryClient.invalidateQueries({ queryKey: pendingProfilesQueryKey })
+    void queryClient.invalidateQueries({ queryKey: profileQueryKeys.all })
   }
 
   async function runAction(profile: PendingProfile, action: ModerationAction) {
