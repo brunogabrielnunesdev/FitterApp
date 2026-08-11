@@ -52,6 +52,7 @@ A validação começará em Umuarama, permitindo acompanhar o uso de perto, conv
 
 - Conta única com contextos de aluno e personal.
 - Criação e edição do perfil profissional.
+- CREF opcional; quando informado, número e documento são enviados juntos para validação.
 - Seleção de modalidades e regiões de atendimento.
 - Envio do perfil para aprovação.
 - Acompanhamento da análise.
@@ -120,6 +121,15 @@ O projeto é formado por quatro aplicações independentes que compartilham a me
 ```
 
 As regras de negócio e permissões ficam centralizadas na API. O painel e o aplicativo são clientes distintos do mesmo backend.
+
+### Contratos integrados
+
+- Rotas administrativas aceitam contas com role `ADMIN` ou `OWNER`.
+- O CREF é opcional; número e documento são obrigatórios somente quando o registro é informado.
+- Preços usam `PER_SESSION`, `MONTHLY` ou `CONSULTATION`.
+- Catálogo, visualização de perfil e contato registram eventos com origem `MOBILE_APP`.
+- Visitantes usam identificação anônima e requisições instrumentadas usam chave de idempotência.
+- Erros da API seguem `application/problem+json` com código e detalhe.
 
 ## Stack
 
@@ -250,6 +260,39 @@ Planejamentos, anotações e o guia visual detalhado são mantidos localmente e 
 Os comandos oficiais de bootstrap, teste, migrations e execução da API estão em
 [`api/README.md`](api/README.md).
 
+### API
+
+~~~powershell
+cd api
+$env:JAVA_HOME='C:/Program Files/Java/jdk-21.0.11'
+./mvnw.cmd clean verify
+./mvnw.cmd spring-boot:run
+~~~
+
+### Painel administrativo
+
+~~~powershell
+cd frontend
+npm ci
+npm run dev
+npm run lint
+npm run build
+~~~
+
+### Mobile
+
+~~~powershell
+cd mobile
+npm ci
+npx expo start
+npm run lint
+npx tsc --noEmit
+npx expo-doctor
+npx expo export --platform android
+~~~
+
+Use `EXPO_PUBLIC_API_URL` para apontar o aplicativo para uma API acessível pelo aparelho. No emulador Android, o fallback local é `http://10.0.2.2:8080`.
+
 ### Requisitos já definidos
 
 - Java 21.
@@ -260,7 +303,7 @@ Os comandos oficiais de bootstrap, teste, migrations e execução da API estão 
 
 ## Status do projeto
 
-O projeto está na fase de definição e preparação:
+O núcleo técnico do MVP está implementado e em estabilização para o piloto:
 
 - [x] Conceito do produto.
 - [x] Escopo inicial do MVP.
@@ -269,12 +312,19 @@ O projeto está na fase de definição e preparação:
 - [x] Style guide e símbolo da marca.
 - [x] Ambiente local preparado.
 - [ ] Pesquisa e validação inicial do negócio.
-- [ ] Modelagem do banco e migrations.
-- [ ] API.
-- [ ] Painel administrativo.
-- [ ] Aplicativo mobile.
-- [ ] Landing page.
+- [x] Modelagem do banco e 10 migrations.
+- [x] API e regras de negócio.
+- [x] Painel administrativo.
+- [x] Aplicativo mobile.
+- [x] Landing page.
 - [ ] Piloto em Umuarama.
+
+### Última validação técnica
+
+- API: 227 testes aprovados e migrations `V1` a `V10` aplicadas em banco vazio.
+- Painel: lint, TypeScript e build de produção aprovados; auditoria npm de produção sem vulnerabilidades conhecidas.
+- Mobile: lint e TypeScript aprovados, Expo Doctor 20/20 e bundle Android gerado.
+- Dependências Mobile: o npm ainda relata alertas transitivos no ecossistema Expo/Metro; as correções automáticas sugeridas exigem downgrades incompatíveis e não devem ser aplicadas com `--force`.
 
 ## Roadmap inicial
 
