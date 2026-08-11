@@ -14,10 +14,13 @@ import com.fitterapp.auth.exception.VerificationTokenExpiredException;
 import com.fitterapp.moderation.exception.ModerationReasonRequiredException;
 import com.fitterapp.moderation.exception.ProfileModerationStateException;
 import com.fitterapp.personal.exception.CrefAlreadyInUseException;
+import com.fitterapp.personal.exception.DuplicateModalityException;
 import com.fitterapp.personal.exception.DuplicateServiceAreaException;
 import com.fitterapp.personal.exception.IncompleteProfileException;
+import com.fitterapp.personal.exception.InvalidModalityNameException;
 import com.fitterapp.personal.exception.InvalidProfilePriceException;
 import com.fitterapp.personal.exception.InvalidServiceAreaException;
+import com.fitterapp.personal.exception.ModalityNotFoundException;
 import com.fitterapp.personal.exception.ProfileAlreadyExistsException;
 import com.fitterapp.personal.exception.ProfileNotApprovedException;
 import com.fitterapp.personal.exception.ProfileNotFoundException;
@@ -49,6 +52,21 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(ProfileNotFoundException.class)
   ResponseEntity<ProblemDetail> handleProfileNotFound(ProfileNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "PROFILE_NOT_FOUND", exception.getMessage());
+  }
+
+  @ExceptionHandler(ModalityNotFoundException.class)
+  ResponseEntity<ProblemDetail> handleModalityNotFound(ModalityNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "MODALITY_NOT_FOUND", exception.getMessage());
+  }
+
+  @ExceptionHandler(DuplicateModalityException.class)
+  ResponseEntity<ProblemDetail> handleDuplicateModality(DuplicateModalityException exception) {
+    return problem(HttpStatus.CONFLICT, "MODALITY_ALREADY_EXISTS", exception.getMessage());
+  }
+
+  @ExceptionHandler(InvalidModalityNameException.class)
+  ResponseEntity<ProblemDetail> handleInvalidModalityName(InvalidModalityNameException exception) {
+    return problem(HttpStatus.BAD_REQUEST, "INVALID_MODALITY_NAME", exception.getMessage());
   }
 
   @ExceptionHandler(PublicProfileNotFoundException.class)

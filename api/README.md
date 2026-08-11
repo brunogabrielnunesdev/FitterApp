@@ -44,7 +44,7 @@ Execute a verificação completa na pasta `api`:
 .\mvnw.cmd clean verify
 ```
 
-Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V6`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
+Esse é o comando oficial de validação completa. A suíte usa Testcontainers para iniciar um PostgreSQL 17 vazio. Durante o bootstrap do contexto, o Flyway valida e aplica, em ordem, as migrations `V1` a `V7`; em seguida os testes conferem o schema, as restrições e o comportamento da aplicação. O Docker precisa estar em execução.
 
 O workflow `.github/workflows/backend-ci.yml` valida o bootstrap do Wrapper no Windows e executa essa verificação completa em cada alteração da API.
 
@@ -83,6 +83,17 @@ As rotas abaixo exigem a role `ADMIN` ou `OWNER`:
 - `GET /api/v1/admin/users/{userId}`: retorna os dados operacionais da conta e suas roles.
 
 As respostas administrativas de usuários nunca incluem hashes de senha, refresh tokens, tokens de verificação ou tokens de recuperação.
+
+## Gerenciamento de modalidades
+
+As rotas administrativas exigem a role `ADMIN` ou `OWNER`:
+
+- `GET /api/v1/admin/modalities`: lista todas as modalidades, incluindo as inativas.
+- `POST /api/v1/admin/modalities`: cria uma modalidade ativa; o corpo recebe `name` e o `slug` é gerado pela API.
+- `PUT /api/v1/admin/modalities/{modalityId}`: atualiza nome e slug da modalidade.
+- `PATCH /api/v1/admin/modalities/{modalityId}/activation`: ativa ou desativa usando o corpo `{"active": true|false}`.
+
+Nomes são únicos sem diferenciar maiúsculas e minúsculas. A desativação preserva os vínculos históricos, mas remove a modalidade de `GET /api/v1/public/modalities` e impede sua seleção em novos cadastros ou revisões.
 
 ## Execução local
 
