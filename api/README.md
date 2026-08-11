@@ -71,6 +71,15 @@ Suspensão e reativação registram o administrador, o motivo, a data e os estad
 
 O endpoint legado `GET /api/v1/admin/personal-profiles/pending-review` permanece disponível para compatibilidade com o painel existente.
 
+## Administração de usuários
+
+As rotas abaixo exigem a role `ADMIN` ou `OWNER`:
+
+- `GET /api/v1/admin/users?query=bruno&status=ACTIVE&role=PERSONAL&page=0&size=20`: lista usuários com busca opcional por nome ou e-mail e filtros opcionais por status e role. `size` aceita de 1 a 100 itens.
+- `GET /api/v1/admin/users/{userId}`: retorna os dados operacionais da conta e suas roles.
+
+As respostas administrativas de usuários nunca incluem hashes de senha, refresh tokens, tokens de verificação ou tokens de recuperação.
+
 ## Execução local
 
 Na raiz do repositório, inicie o PostgreSQL:

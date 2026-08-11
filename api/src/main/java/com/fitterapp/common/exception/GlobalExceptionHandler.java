@@ -26,6 +26,7 @@ import com.fitterapp.personal.exception.ProfileRevisionNotEditableException;
 import com.fitterapp.personal.exception.PublicProfileNotFoundException;
 import com.fitterapp.personal.exception.ReviewReasonRequiredException;
 import com.fitterapp.personal.exception.UnavailableModalityException;
+import com.fitterapp.user.exception.UserNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,6 +40,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler(UserNotFoundException.class)
+  ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", exception.getMessage());
+  }
 
   @ExceptionHandler(ProfileNotFoundException.class)
   ResponseEntity<ProblemDetail> handleProfileNotFound(ProfileNotFoundException exception) {
