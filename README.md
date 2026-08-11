@@ -247,15 +247,8 @@ Planejamentos, anotações e o guia visual detalhado são mantidos localmente e 
 
 ## Desenvolvimento local
 
-Os projetos ainda serão inicializados. Depois do scaffold, esta seção será atualizada com os comandos definitivos para:
-
-- iniciar o PostgreSQL;
-- executar as migrations;
-- iniciar a API;
-- iniciar o painel administrativo;
-- iniciar a landing page;
-- executar o aplicativo no emulador Android;
-- rodar linters, testes e builds.
+Os comandos oficiais de bootstrap, teste, migrations e execução da API estão em
+[`api/README.md`](api/README.md).
 
 ### Requisitos já definidos
 
