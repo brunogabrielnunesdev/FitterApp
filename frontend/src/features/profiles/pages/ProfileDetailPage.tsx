@@ -162,13 +162,17 @@ function ProfileContent({ profile }: { profile: AdminProfileDetail }) {
               {formatPrice(revision.startingPriceCents, revision.priceUnit)}
             </DataItem>
             <DataItem label="WhatsApp">
-              <a
-                className="font-bold text-[#c7ff3d] hover:underline"
-                href={`https://wa.me/${revision.whatsapp.replace(/\D/g, '')}`}
-                rel="noreferrer"
-                target="_blank">
-                {revision.whatsapp}
-              </a>
+              {revision.whatsapp ? (
+                <a
+                  className="font-bold text-[#c7ff3d] hover:underline"
+                  href={`https://wa.me/${revision.whatsapp.replace(/\D/g, '')}`}
+                  rel="noreferrer"
+                  target="_blank">
+                  {revision.whatsapp}
+                </a>
+              ) : (
+                'Não informado'
+              )}
             </DataItem>
           </dl>
         </div>

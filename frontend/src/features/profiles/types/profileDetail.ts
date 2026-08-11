@@ -39,8 +39,8 @@ export type AdminProfileDetail = {
     requiresReview: boolean
     rejectionReason: string | null
     fullName: string
-    biography: string
-    whatsapp: string
+    biography: string | null
+    whatsapp: string | null
     profileImageKey: string | null
     experienceStartedYear: number | null
     certifications: string | null

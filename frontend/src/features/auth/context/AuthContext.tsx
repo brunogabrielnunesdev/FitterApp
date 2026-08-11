@@ -33,7 +33,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const value = useMemo<AuthContextValue>(
     () => ({
       email: claims?.email ?? null,
-      isAdmin: claims?.roles?.includes('ADMIN') ?? false,
+      isAdmin:
+        claims?.roles?.some((role) => role === 'ADMIN' || role === 'OWNER') ?? false,
       isLoading,
       startSession: (session) => {
         if (!hasAdminRole(session.accessToken)) {
