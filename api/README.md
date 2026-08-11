@@ -54,6 +54,17 @@ Para executar apenas uma classe de teste:
 .\mvnw.cmd -Dtest=AuthControllerTests test
 ```
 
+## Administração de perfis
+
+As rotas abaixo exigem a role `ADMIN` ou `OWNER`:
+
+- `GET /api/v1/admin/personal-profiles?status=PENDING_REVIEW&page=0&size=20`: lista paginada; `status` é opcional e `size` aceita de 1 a 100 itens.
+- `GET /api/v1/admin/personal-profiles/{profileId}`: retorna conta, revisão atual, CREF, modalidades, formas e regiões de atendimento, preço e todos os status necessários para análise.
+- `PATCH /api/v1/admin/personal-profiles/{profileId}/approval`: aprova a revisão em análise.
+- `PATCH /api/v1/admin/personal-profiles/{profileId}/rejection`: reprova a revisão; o corpo deve informar `reason`.
+
+O endpoint legado `GET /api/v1/admin/personal-profiles/pending-review` permanece disponível para compatibilidade com o painel existente.
+
 ## Execução local
 
 Na raiz do repositório, inicie o PostgreSQL:

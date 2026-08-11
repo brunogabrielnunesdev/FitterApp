@@ -25,17 +25,32 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
   List<Profile> findAllByStatusOrderByUpdatedAtAsc(ProfileStatus status);
 
+  @EntityGraph(attributePaths = {"user", "currentRevision", "publishedRevision"})
+  @Query("select p from Profile p where (:status is null or p.status = :status)")
+  Page<Profile> findAllForAdministration(@Param("status") ProfileStatus status, Pageable pageable);
+
+  @EntityGraph(
+      attributePaths = {
+        "user",
+        "currentRevision",
+        "currentRevision.cref",
+        "currentRevision.reviewedBy",
+        "publishedRevision"
+      })
+  @Query("select p from Profile p where p.id = :profileId")
+  Optional<Profile> findByIdForAdministration(@Param("profileId") UUID profileId);
+
   @EntityGraph(attributePaths = "publishedRevision")
   @Query(
       """
-            select p from Profile p
-            where p.status = com.fitterapp.personal.entity.profile.ProfileStatus.PUBLISHED
-              and (:query is null or lower(p.publishedRevision.fullName) like lower(concat('%', :query, '%')))
-              and (:modalityId is null or exists (select 1 from RevisionModality rm where rm.revision = p.publishedRevision and rm.modality.id = :modalityId))
-              and (:neighborhood is null or exists (select 1 from RevisionServiceArea area where area.revision = p.publishedRevision and lower(area.neighborhood) = lower(:neighborhood)))
-              and (:serviceMode is null or exists (select 1 from RevisionServiceMode mode where mode.revision = p.publishedRevision and mode.id.serviceMode = :serviceMode))
-            order by lower(p.publishedRevision.fullName), p.id
-            """)
+select p from Profile p
+where p.status = com.fitterapp.personal.entity.profile.ProfileStatus.PUBLISHED
+  and (:query is null or lower(p.publishedRevision.fullName) like lower(concat('%', :query, '%')))
+  and (:modalityId is null or exists (select 1 from RevisionModality rm where rm.revision = p.publishedRevision and rm.modality.id = :modalityId))
+  and (:neighborhood is null or exists (select 1 from RevisionServiceArea area where area.revision = p.publishedRevision and lower(area.neighborhood) = lower(:neighborhood)))
+  and (:serviceMode is null or exists (select 1 from RevisionServiceMode mode where mode.revision = p.publishedRevision and mode.id.serviceMode = :serviceMode))
+order by lower(p.publishedRevision.fullName), p.id
+""")
   Page<Profile> findPublished(
       @Param("query") String query,
       @Param("modalityId") Short modalityId,
@@ -46,9 +61,9 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
   @EntityGraph(attributePaths = "publishedRevision")
   @Query(
       """
-            select p from Profile p
-            where p.status = com.fitterapp.personal.entity.profile.ProfileStatus.PUBLISHED
-              and p.slug = :slug
-            """)
+      select p from Profile p
+      where p.status = com.fitterapp.personal.entity.profile.ProfileStatus.PUBLISHED
+        and p.slug = :slug
+      """)
   Optional<Profile> findPublishedBySlug(@Param("slug") String slug);
 }
