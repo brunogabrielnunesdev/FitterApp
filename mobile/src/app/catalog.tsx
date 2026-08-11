@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/common/theme/colors';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import { ProfileCard } from '@/features/catalog/components/ProfileCard';
 import { useDebouncedValue } from '@/features/catalog/hooks/useDebouncedValue';
 import { listPublicProfiles } from '@/features/catalog/services/catalogService';
@@ -32,6 +33,7 @@ const serviceModeFilters: { label: string; value?: ServiceMode }[] = [
 ];
 
 export default function CatalogScreen() {
+  const { session } = useAuth();
   const [search, setSearch] = useState('');
   const [serviceMode, setServiceMode] = useState<ServiceMode>();
   const debouncedSearch = useDebouncedValue(search.trim());
@@ -66,8 +68,11 @@ export default function CatalogScreen() {
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.brand}>FITTERAPP</Text>
-        <Pressable onPress={() => router.push('/login')}>
-          <Text style={styles.login}>Entrar</Text>
+        <Pressable
+          accessibilityLabel={session ? 'Abrir minha conta' : 'Entrar ou criar conta'}
+          accessibilityRole="button"
+          onPress={() => router.push(session ? '/home' : '/login')}>
+          <Text style={styles.login}>{session ? 'Minha conta' : 'Entrar'}</Text>
         </Pressable>
       </View>
 

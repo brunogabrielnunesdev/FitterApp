@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { Href, router } from 'expo-router';
+import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
@@ -13,6 +13,7 @@ import {
 } from '@/features/auth/components/AuthScreen';
 import { register } from '@/features/auth/services/authService';
 import { getAuthErrorMessage } from '@/features/auth/utils/getAuthErrorMessage';
+import { getSafeReturnPath, withReturnPath } from '@/features/auth/utils/authNavigation';
 import {
   RegisterForm,
   registerSchema,
@@ -22,6 +23,8 @@ const emailVerificationRequired =
   process.env.EXPO_PUBLIC_EMAIL_VERIFICATION_REQUIRED === 'true';
 
 export function RegisterScreen() {
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
+  const returnPath = getSafeReturnPath(returnTo);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const {
     control,
@@ -41,11 +44,15 @@ export function RegisterScreen() {
     mutationFn: register,
     onSuccess: (_, request) => {
       if (emailVerificationRequired) {
-        router.replace(`/confirm-email?email=${encodeURIComponent(request.email)}` as Href);
+        router.replace(
+          `/confirm-email?email=${encodeURIComponent(request.email)}&returnTo=${encodeURIComponent(returnPath)}` as Href,
+        );
         return;
       }
 
-      router.replace('/login?registered=true' as Href);
+      router.replace(
+        `/login?registered=true&returnTo=${encodeURIComponent(returnPath)}` as Href,
+      );
     },
   });
 
@@ -59,7 +66,8 @@ export function RegisterScreen() {
           : 'Seu cadastro leva menos de um minuto. Depois, entre com seu e-mail e senha.'
       }
       footer={
-        <Pressable onPress={() => router.replace('/')}>
+        <Pressable
+          onPress={() => router.replace(withReturnPath('/login', returnPath) as Href)}>
           <Text style={authScreenStyles.footer}>
             JÁ POSSUI CONTA? <Text style={authScreenStyles.footerAccent}>ENTRAR</Text>
           </Text>

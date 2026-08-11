@@ -1,9 +1,11 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import {
   clearSession,
   getSession,
   saveSession,
+  subscribeToSession,
 } from '@/features/auth/services/sessionStorage';
 import { LoginResponse, StoredSession } from '@/features/auth/types/auth';
 import { logout, refreshSession } from '@/features/auth/services/authService';
@@ -18,10 +20,16 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const unsubscribe = subscribeToSession((nextSession) => {
+      setSession(nextSession);
+      if (!nextSession) queryClient.clear();
+    });
+
     getSession()
       .then(async (stored) => {
         if (!stored) return setSession(null);
@@ -34,7 +42,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
       })
       .finally(() => setIsLoading(false));
-  }, []);
+
+    return unsubscribe;
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -46,7 +56,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
           try { await logout(session.refreshToken); } catch { /* logout local continua */ }
         }
         await clearSession();
-        setSession(null);
       },
     }),
     [isLoading, session],

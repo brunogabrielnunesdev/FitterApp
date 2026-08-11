@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
+import { SessionLoadingScreen } from '@/common/components/session/SessionLoadingScreen';
 import { colors } from '@/common/theme/colors';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
@@ -11,22 +12,28 @@ export default function AuthenticatedHomeScreen() {
 
   async function handleLogout() {
     await endSession();
-    router.replace('/');
+    router.replace('/catalog');
   }
 
-  if (isLoading) return null;
-  if (!session) return <Redirect href="/" />;
+  if (isLoading) return <SessionLoadingScreen />;
+  if (!session) return <Redirect href="/login?returnTo=%2Fhome" />;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.content}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>LOGIN VALIDADO</Text>
+          <Text style={styles.badgeText}>FITTERAPP</Text>
         </View>
-        <Text style={styles.title}>Você está dentro.</Text>
+        <Text style={styles.title}>Seu treino começa aqui.</Text>
         <Text style={styles.description}>
-          Esta é uma área temporária para confirmar a sessão mobile com a API do FitterApp.
+          Encontre profissionais ou crie seu perfil para aparecer no catálogo da sua região.
         </Text>
+        <PrimaryButton label="Explorar personais" onPress={() => router.push('/catalog')} />
+        <PrimaryButton
+          label="Quero ser personal"
+          onPress={() => router.push('/personal-profile')}
+          variant="secondary"
+        />
         <PrimaryButton label="Sair da conta" onPress={handleLogout} variant="secondary" />
       </View>
     </SafeAreaView>

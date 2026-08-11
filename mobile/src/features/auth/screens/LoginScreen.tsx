@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
 import { useFonts } from 'expo-font';
-import { Href, router, useLocalSearchParams } from 'expo-router';
+import { Href, Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -20,15 +20,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
 import { FormField } from '@/common/components/input/FormField';
+import { SessionLoadingScreen } from '@/common/components/session/SessionLoadingScreen';
 import { colors } from '@/common/theme/colors';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { login } from '@/features/auth/services/authService';
 import { getLoginErrorMessage } from '@/features/auth/utils/getLoginErrorMessage';
+import { getSafeReturnPath, withReturnPath } from '@/features/auth/utils/authNavigation';
 import { LoginForm, loginSchema } from '@/features/auth/validation/loginSchema';
 
 export function LoginScreen() {
-  const { startSession } = useAuth();
-  const { registered } = useLocalSearchParams<{ registered?: string }>();
+  const { isLoading, session, startSession } = useAuth();
+  const { registered, returnTo } = useLocalSearchParams<{
+    registered?: string | string[];
+    returnTo?: string | string[];
+  }>();
+  const returnPath = getSafeReturnPath(returnTo);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
@@ -49,9 +55,12 @@ export function LoginScreen() {
     mutationFn: login,
     onSuccess: async (session) => {
       await startSession(session);
-      router.replace('/home');
+      router.replace(returnPath as Href);
     },
   });
+
+  if (isLoading) return <SessionLoadingScreen />;
+  if (session) return <Redirect href={returnPath as Href} />;
 
   if (!fontsLoaded) {
     return <View style={styles.loadingScreen} />;
@@ -92,7 +101,7 @@ export function LoginScreen() {
           </View>
 
           <View style={styles.formCard}>
-            {registered === 'true' && (
+            {(Array.isArray(registered) ? registered[0] : registered) === 'true' && (
               <View style={styles.successBox}>
                 <Text style={styles.successText}>Conta criada. Agora é só entrar.</Text>
               </View>
@@ -153,12 +162,16 @@ export function LoginScreen() {
               loading={loginMutation.isPending}
               onPress={handleSubmit((form) => loginMutation.mutate(form))}
             />
-            <Pressable onPress={() => router.push('/forgot-password' as Href)}>
+            <Pressable
+              onPress={() =>
+                router.push(withReturnPath('/forgot-password', returnPath) as Href)
+              }>
               <Text style={styles.footerAccent}>Esqueci minha senha</Text>
             </Pressable>
           </View>
 
-          <Pressable onPress={() => router.push('/register' as Href)}>
+          <Pressable
+            onPress={() => router.push(withReturnPath('/register', returnPath) as Href)}>
             <Text style={styles.footer}>
               NOVO POR AQUI? <Text style={styles.footerAccent}>CRIAR CONTA</Text>
             </Text>

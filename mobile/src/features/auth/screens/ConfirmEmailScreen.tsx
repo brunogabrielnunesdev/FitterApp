@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Href, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -14,19 +14,26 @@ import {
   resendConfirmation,
 } from '@/features/auth/services/authService';
 import { getAuthErrorMessage } from '@/features/auth/utils/getAuthErrorMessage';
+import { getSafeReturnPath, withReturnPath } from '@/features/auth/utils/authNavigation';
 
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value ?? '';
 }
 
 export function ConfirmEmailScreen() {
-  const params = useLocalSearchParams<{ email?: string | string[]; token?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    email?: string | string[];
+    returnTo?: string | string[];
+    token?: string | string[];
+  }>();
+  const returnPath = getSafeReturnPath(params.returnTo);
+  const loginPath = withReturnPath('/login', returnPath) as Href;
   const [email, setEmail] = useState(() => firstParam(params.email));
   const [token, setToken] = useState(() => firstParam(params.token));
   const processedToken = useRef('');
   const confirmMutation = useMutation({
     mutationFn: confirmEmail,
-    onSuccess: () => setTimeout(() => router.replace('/'), 900),
+    onSuccess: () => setTimeout(() => router.replace(loginPath), 900),
   });
   const resendMutation = useMutation({ mutationFn: resendConfirmation });
   const { mutate: confirm } = confirmMutation;
@@ -45,7 +52,7 @@ export function ConfirmEmailScreen() {
       title="Só falta um passo."
       subtitle="Abra o e-mail enviado pelo FitterApp. O link confirma automaticamente; no teste local, você também pode colar o token."
       footer={
-        <Pressable onPress={() => router.replace('/')}>
+        <Pressable onPress={() => router.replace(loginPath)}>
           <Text style={authScreenStyles.footer}>
             VOLTAR PARA <Text style={authScreenStyles.footerAccent}>ENTRAR</Text>
           </Text>
