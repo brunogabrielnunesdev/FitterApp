@@ -5,12 +5,14 @@ import com.fitterapp.auth.exception.AccountNotPendingVerificationException;
 import com.fitterapp.auth.exception.EmailAlreadyRegisteredException;
 import com.fitterapp.auth.exception.EmailNotVerifiedException;
 import com.fitterapp.auth.exception.InvalidCredentialsException;
-import com.fitterapp.auth.exception.InvalidRefreshTokenException;
 import com.fitterapp.auth.exception.InvalidPasswordResetTokenException;
+import com.fitterapp.auth.exception.InvalidRefreshTokenException;
 import com.fitterapp.auth.exception.InvalidVerificationTokenException;
 import com.fitterapp.auth.exception.RoleNotConfiguredException;
 import com.fitterapp.auth.exception.VerificationTokenAlreadyUsedException;
 import com.fitterapp.auth.exception.VerificationTokenExpiredException;
+import com.fitterapp.moderation.exception.ModerationReasonRequiredException;
+import com.fitterapp.moderation.exception.ProfileModerationStateException;
 import com.fitterapp.personal.exception.CrefAlreadyInUseException;
 import com.fitterapp.personal.exception.DuplicateServiceAreaException;
 import com.fitterapp.personal.exception.IncompleteProfileException;
@@ -59,6 +61,7 @@ public class GlobalExceptionHandler {
     InvalidProfilePriceException.class,
     InvalidServiceAreaException.class,
     DuplicateServiceAreaException.class,
+    ModerationReasonRequiredException.class,
     ReviewReasonRequiredException.class,
     UnavailableModalityException.class
   })
@@ -73,6 +76,12 @@ public class GlobalExceptionHandler {
   })
   ResponseEntity<ProblemDetail> handleProfileState(RuntimeException exception) {
     return problem(HttpStatus.CONFLICT, "PROFILE_INVALID_STATE", exception.getMessage());
+  }
+
+  @ExceptionHandler(ProfileModerationStateException.class)
+  ResponseEntity<ProblemDetail> handleProfileModerationState(
+      ProfileModerationStateException exception) {
+    return problem(HttpStatus.CONFLICT, "PROFILE_MODERATION_INVALID_STATE", exception.getMessage());
   }
 
   @ExceptionHandler(EmailAlreadyRegisteredException.class)

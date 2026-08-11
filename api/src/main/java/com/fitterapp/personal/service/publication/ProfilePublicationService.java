@@ -1,5 +1,6 @@
 package com.fitterapp.personal.service.publication;
 
+import com.fitterapp.moderation.exception.ProfileModerationStateException;
 import com.fitterapp.personal.entity.profile.*;
 import com.fitterapp.personal.exception.*;
 import com.fitterapp.personal.repository.ProfileRepository;
@@ -21,6 +22,8 @@ public class ProfilePublicationService {
         profiles
             .findByIdAndUserId(c.profileId(), c.userId())
             .orElseThrow(ProfileNotFoundException::new);
+    if (p.getStatus() == ProfileStatus.SUSPENDED)
+      throw new ProfileModerationStateException("A suspended profile cannot be published");
     if (p.getCurrentRevision() == null
         || p.getCurrentRevision().getStatus() != ProfileRevisionStatus.APPROVED)
       throw new ProfileNotApprovedException();

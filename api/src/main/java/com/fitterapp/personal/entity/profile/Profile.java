@@ -171,6 +171,17 @@ public class Profile {
     updatedAt = suspendedAt;
   }
 
+  public void reactivate(ProfileStatus previousStatus, OffsetDateTime reactivatedAt) {
+    if (previousStatus != ProfileStatus.APPROVED && previousStatus != ProfileStatus.PUBLISHED) {
+      throw new IllegalArgumentException("A suspended profile can only restore an approved status");
+    }
+    if (previousStatus == ProfileStatus.PUBLISHED && publishedRevision == null) {
+      throw new IllegalStateException("A published profile must have a published revision");
+    }
+    status = previousStatus;
+    updatedAt = reactivatedAt;
+  }
+
   public boolean isPublished() {
     return publishedRevision != null;
   }

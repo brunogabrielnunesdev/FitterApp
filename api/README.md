@@ -62,6 +62,10 @@ As rotas abaixo exigem a role `ADMIN` ou `OWNER`:
 - `GET /api/v1/admin/personal-profiles/{profileId}`: retorna conta, revisão atual, CREF, modalidades, formas e regiões de atendimento, preço e todos os status necessários para análise.
 - `PATCH /api/v1/admin/personal-profiles/{profileId}/approval`: aprova a revisão em análise.
 - `PATCH /api/v1/admin/personal-profiles/{profileId}/rejection`: reprova a revisão; o corpo deve informar `reason`.
+- `PATCH /api/v1/admin/personal-profiles/{profileId}/suspension`: suspende um perfil aprovado ou publicado; o corpo deve informar `reason`.
+- `PATCH /api/v1/admin/personal-profiles/{profileId}/reactivation`: encerra a suspensão ativa e restaura o estado `APPROVED` ou `PUBLISHED` anterior; o corpo deve informar `reason`.
+
+Suspensão e reativação registram o administrador, o motivo, a data e os estados anterior e novo. Um perfil suspenso não pode ser republicado pelo titular e fica fora das consultas do catálogo até a reativação administrativa.
 
 O endpoint legado `GET /api/v1/admin/personal-profiles/pending-review` permanece disponível para compatibilidade com o painel existente.
 

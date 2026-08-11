@@ -7,6 +7,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fitterapp.moderation.dto.ProfileModerationRequestDto;
+import com.fitterapp.moderation.service.suspension.ProfileModerationResult;
+import com.fitterapp.moderation.service.suspension.ProfileModerationService;
+import com.fitterapp.moderation.service.suspension.ReactivateProfileCommand;
+import com.fitterapp.moderation.service.suspension.SuspendProfileCommand;
 import com.fitterapp.personal.dto.admin.AdminProfileDetailDto;
 import com.fitterapp.personal.dto.admin.AdminProfilePageDto;
 import com.fitterapp.personal.dto.review.RejectProfileRequestDto;
@@ -37,6 +42,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 class AdminProfileControllerTests {
 
   @Mock private ReviewProfileService review;
+  @Mock private ProfileModerationService moderation;
   @Mock private ListProfilesForReviewService pending;
   @Mock private ListAdminProfilesService listAdmin;
   @Mock private GetAdminProfileService getAdmin;
@@ -84,9 +90,50 @@ class AdminProfileControllerTests {
     verify(review).reject(new RejectProfileCommand(admin, profile, "CREF inválido"));
   }
 
+  @Test
+  void suspendsUsingAdminJwtSubjectAndReason() {
+    UUID admin = UUID.randomUUID();
+    UUID profile = UUID.randomUUID();
+    UUID suspension = UUID.randomUUID();
+    when(moderation.suspend(any()))
+        .thenReturn(
+            new ProfileModerationResult(
+                profile,
+                suspension,
+                ProfileStatus.SUSPENDED,
+                java.time.OffsetDateTime.parse("2026-08-11T12:00:00Z")));
+
+    var response =
+        controller()
+            .suspend(jwt(admin), profile, new ProfileModerationRequestDto("Dados inconsistentes"));
+
+    assertThat(response.getBody().suspensionId()).isEqualTo(suspension);
+    verify(moderation).suspend(new SuspendProfileCommand(admin, profile, "Dados inconsistentes"));
+  }
+
+  @Test
+  void reactivatesUsingAdminJwtSubjectAndReason() {
+    UUID admin = UUID.randomUUID();
+    UUID profile = UUID.randomUUID();
+    UUID suspension = UUID.randomUUID();
+    when(moderation.reactivate(any()))
+        .thenReturn(
+            new ProfileModerationResult(
+                profile,
+                suspension,
+                ProfileStatus.PUBLISHED,
+                java.time.OffsetDateTime.parse("2026-08-11T12:00:00Z")));
+
+    controller()
+        .reactivate(jwt(admin), profile, new ProfileModerationRequestDto("Correção validada"));
+
+    verify(moderation)
+        .reactivate(new ReactivateProfileCommand(admin, profile, "Correção validada"));
+  }
+
   private AdminProfileController controller() {
     return new AdminProfileController(
-        review, pending, listAdmin, getAdmin, new ProfileMapper(), adminMapper);
+        review, moderation, pending, listAdmin, getAdmin, new ProfileMapper(), adminMapper);
   }
 
   private Jwt jwt(UUID id) {

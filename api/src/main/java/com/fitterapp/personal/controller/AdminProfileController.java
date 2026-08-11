@@ -1,5 +1,11 @@
 package com.fitterapp.personal.controller;
 
+import com.fitterapp.moderation.dto.ProfileModerationRequestDto;
+import com.fitterapp.moderation.dto.ProfileModerationResponseDto;
+import com.fitterapp.moderation.service.suspension.ProfileModerationResult;
+import com.fitterapp.moderation.service.suspension.ProfileModerationService;
+import com.fitterapp.moderation.service.suspension.ReactivateProfileCommand;
+import com.fitterapp.moderation.service.suspension.SuspendProfileCommand;
 import com.fitterapp.personal.dto.admin.AdminProfileDetailDto;
 import com.fitterapp.personal.dto.admin.AdminProfilePageDto;
 import com.fitterapp.personal.dto.profile.ProfileActionResponseDto;
@@ -36,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminProfileController {
 
   private final ReviewProfileService reviewProfileService;
+  private final ProfileModerationService profileModerationService;
   private final ListProfilesForReviewService listProfilesForReviewService;
   private final ListAdminProfilesService listAdminProfilesService;
   private final GetAdminProfileService getAdminProfileService;
@@ -87,6 +94,33 @@ public class AdminProfileController {
         reviewProfileService.reject(
             new RejectProfileCommand(adminUserId(jwt), profileId, request.reason()));
     return ResponseEntity.ok(new ProfileActionResponseDto(result.profileId(), result.revisionId()));
+  }
+
+  @PatchMapping("/{profileId}/suspension")
+  public ResponseEntity<ProfileModerationResponseDto> suspend(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @Valid @RequestBody ProfileModerationRequestDto request) {
+    var result =
+        profileModerationService.suspend(
+            new SuspendProfileCommand(adminUserId(jwt), profileId, request.reason()));
+    return ResponseEntity.ok(toModerationResponse(result));
+  }
+
+  @PatchMapping("/{profileId}/reactivation")
+  public ResponseEntity<ProfileModerationResponseDto> reactivate(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID profileId,
+      @Valid @RequestBody ProfileModerationRequestDto request) {
+    var result =
+        profileModerationService.reactivate(
+            new ReactivateProfileCommand(adminUserId(jwt), profileId, request.reason()));
+    return ResponseEntity.ok(toModerationResponse(result));
+  }
+
+  private ProfileModerationResponseDto toModerationResponse(ProfileModerationResult result) {
+    return new ProfileModerationResponseDto(
+        result.profileId(), result.suspensionId(), result.profileStatus(), result.actionAt());
   }
 
   private UUID adminUserId(Jwt jwt) {

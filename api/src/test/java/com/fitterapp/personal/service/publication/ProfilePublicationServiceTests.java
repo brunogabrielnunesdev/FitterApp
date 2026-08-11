@@ -3,6 +3,7 @@ package com.fitterapp.personal.service.publication;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.fitterapp.moderation.exception.ProfileModerationStateException;
 import com.fitterapp.personal.entity.profile.*;
 import com.fitterapp.personal.exception.*;
 import com.fitterapp.personal.repository.*;
@@ -45,6 +46,17 @@ class ProfilePublicationServiceTests {
     service().unpublish(new UnpublishProfileCommand(f.userId, f.profileId));
     assertThat(f.profile.getStatus()).isEqualTo(ProfileStatus.APPROVED);
     assertThat(f.profile.getPublishedRevision()).isNull();
+  }
+
+  @Test
+  void suspendedProfileCannotPublishAnApprovedRevision() {
+    F f = f(true);
+    f.profile.suspend(NOW.atOffset(ZoneOffset.UTC));
+    when(profiles.findByIdAndUserId(f.profileId, f.userId)).thenReturn(Optional.of(f.profile));
+
+    assertThatThrownBy(() -> service().publish(new PublishProfileCommand(f.userId, f.profileId)))
+        .isInstanceOf(ProfileModerationStateException.class);
+    assertThat(f.profile.getStatus()).isEqualTo(ProfileStatus.SUSPENDED);
   }
 
   private ProfilePublicationService service() {
