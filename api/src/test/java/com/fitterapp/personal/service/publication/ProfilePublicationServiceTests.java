@@ -22,12 +22,13 @@ class ProfilePublicationServiceTests {
   @Mock ProfileRepository profiles;
 
   @Test
-  void publishesApprovedRevision() {
+  void publishesApprovedRevisionWithoutCref() {
     F f = f(true);
     when(profiles.findByIdAndUserId(f.profileId, f.userId)).thenReturn(Optional.of(f.profile));
     service().publish(new PublishProfileCommand(f.userId, f.profileId));
     assertThat(f.profile.getStatus()).isEqualTo(ProfileStatus.PUBLISHED);
     assertThat(f.profile.getPublishedRevision()).isSameAs(f.revision);
+    assertThat(f.profile.getPublishedRevision().getCref()).isNull();
   }
 
   @Test

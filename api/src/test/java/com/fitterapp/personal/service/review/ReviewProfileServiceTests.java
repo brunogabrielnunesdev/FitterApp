@@ -33,7 +33,7 @@ class ReviewProfileServiceTests {
   @Mock UserRoleRepository userRoles;
 
   @Test
-  void approvesAndGrantsPersonalRole() {
+  void approvesRevisionWithoutCrefAndGrantsPersonalRole() {
     F f = f();
     Role role = role();
     when(profiles.findById(f.profileId)).thenReturn(Optional.of(f.profile));
@@ -42,6 +42,7 @@ class ReviewProfileServiceTests {
     when(userRoles.existsById(any())).thenReturn(false);
     service().approve(new ApproveProfileCommand(f.adminId, f.profileId));
     assertThat(f.revision.getStatus()).isEqualTo(ProfileRevisionStatus.APPROVED);
+    assertThat(f.revision.getCref()).isNull();
     verify(userRoles).save(any(UserRole.class));
   }
 

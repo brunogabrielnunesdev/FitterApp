@@ -137,4 +137,19 @@ class AdminProfileMapperTests {
     assertThat(result.revision().startingPriceCents()).isEqualTo(12000);
     assertThat(result.revision().reviewedByUserId()).isEqualTo(reviewerId);
   }
+
+  @Test
+  void mapsAndSerializesMissingCrefAsNull() {
+    when(profile.getUser()).thenReturn(account);
+    when(revision.getCref()).thenReturn(null);
+
+    var result =
+        new AdminProfileMapper()
+            .toDetail(
+                new AdminProfileDetails(profile, revision, List.of(), List.of(), List.of()));
+    var json = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(result);
+
+    assertThat(result.revision().cref()).isNull();
+    assertThat(json.at("/revision/cref").isNull()).isTrue();
+  }
 }

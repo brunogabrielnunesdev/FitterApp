@@ -56,6 +56,8 @@ Para executar apenas uma classe de teste:
 
 ## Administração de perfis
 
+O CREF é opcional no fluxo profissional. Um perfil completo pode ser enviado, aprovado e publicado sem CREF. Quando o personal optar por informá-lo, `registrationCode` e `documentImageKey` continuam obrigatórios em conjunto no endpoint de atualização; esses dados permanecem privados e aparecem apenas nas consultas administrativas.
+
 As rotas abaixo exigem a role `ADMIN` ou `OWNER`:
 
 - `GET /api/v1/admin/personal-profiles?status=PENDING_REVIEW&page=0&size=20`: lista paginada; `status` é opcional e `size` aceita de 1 a 100 itens.

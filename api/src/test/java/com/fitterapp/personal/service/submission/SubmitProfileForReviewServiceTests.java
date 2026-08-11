@@ -34,17 +34,30 @@ class SubmitProfileForReviewServiceTests {
   @Mock RevisionServiceAreaRepository areas;
 
   @Test
-  void submitsCompleteDraft() {
-    Fixture f = fixture(true);
+  void submitsCompleteDraftWithoutCref() {
+    Fixture f = fixture(true, false);
     stub(f, 1, 1, 1);
     var result = service().submit(new SubmitProfileForReviewCommand(f.userId, f.profileId));
     assertThat(f.revision.getStatus()).isEqualTo(ProfileRevisionStatus.PENDING_REVIEW);
+    assertThat(f.revision.getCref()).isNull();
     assertThat(result.revisionId()).isEqualTo(f.revisionId);
   }
 
   @Test
-  void rejectsIncompleteProfile() {
-    Fixture f = fixture(false);
+  void submitsCompleteDraftWithCref() {
+    Fixture f = fixture(true, true);
+    stub(f, 1, 1, 1);
+
+    service().submit(new SubmitProfileForReviewCommand(f.userId, f.profileId));
+
+    assertThat(f.revision.getStatus()).isEqualTo(ProfileRevisionStatus.PENDING_REVIEW);
+    assertThat(f.revision.getCref()).isNotNull();
+    assertThat(f.revision.getCref().getDocumentImageKey()).isEqualTo("private/cref.webp");
+  }
+
+  @Test
+  void rejectsMissingRequiredFieldEvenWithoutCref() {
+    Fixture f = fixture(false, false);
     when(profiles.findByIdAndUserId(f.profileId, f.userId)).thenReturn(Optional.of(f.profile));
     assertThatThrownBy(
             () -> service().submit(new SubmitProfileForReviewCommand(f.userId, f.profileId)))
@@ -64,7 +77,7 @@ class SubmitProfileForReviewServiceTests {
         profiles, modalities, modes, areas, Clock.fixed(NOW, ZoneOffset.UTC));
   }
 
-  private Fixture fixture(boolean complete) {
+  private Fixture fixture(boolean complete, boolean withCref) {
     UUID userId = UUID.randomUUID(), profileId = UUID.randomUUID(), revisionId = UUID.randomUUID();
     User user =
         User.pendingRegistration(
@@ -84,7 +97,7 @@ class SubmitProfileForReviewServiceTests {
         null,
         null,
         NOW.atOffset(ZoneOffset.UTC));
-    if (complete)
+    if (withCref)
       revision.assignCref(
           Cref.pendingReview(
               profile, "CREF-PR-1", "private/cref.webp", NOW.atOffset(ZoneOffset.UTC)),
