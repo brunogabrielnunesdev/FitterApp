@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { Logo } from '../../../common/components/Logo'
 import { ModerationFeedbackBanner } from '../components/ModerationFeedbackBanner'
 import { ProfileDetailState } from '../components/ProfileDetailState'
 import { REJECTION_REASON_MAX_LENGTH } from '../components/PendingProfileCard'
@@ -312,22 +311,9 @@ export function ProfileDetailPage() {
     normalizedReason.length > 0 && normalizedReason.length <= REJECTION_REASON_MAX_LENGTH
 
   return (
-    <main className="min-h-screen bg-[#080808] text-[#f6f4ee]">
-      <header className="border-b border-[#292929] bg-[#080808]/95 px-6 backdrop-blur lg:px-10">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between">
-          <Link aria-label="Voltar ao dashboard" to="/admin">
-            <Logo compact />
-          </Link>
-          <Link
-            className="rounded-full border border-[#292929] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
-            to="/admin/personals/pending">
-            Voltar à fila
-          </Link>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl px-6 py-10 lg:py-14">
-        <div className="border-b border-[#292929] pb-8">
+    <div className="mx-auto max-w-6xl px-6 py-10 lg:py-14">
+      <div className="flex flex-col gap-5 border-b border-[#292929] pb-8 sm:flex-row sm:items-end sm:justify-between">
+        <div>
           <p className="text-xs font-bold tracking-[.18em] text-[#c7ff3d]">ANÁLISE DE PERFIL</p>
           <h1 className="mt-3 font-['Manrope'] text-4xl font-extrabold tracking-[-.045em] md:text-5xl">
             {profile?.revision.fullName ?? 'Detalhes do personal'}
@@ -336,8 +322,14 @@ export function ProfileDetailPage() {
             Confira os dados profissionais, o registro e a cobertura antes de decidir.
           </p>
         </div>
+        <Link
+          className="w-fit shrink-0 rounded-full border border-[#333] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
+          to="/admin/personals/pending">
+          Voltar à fila
+        </Link>
+      </div>
 
-        <div className="mt-8">
+      <div className="mt-8">
           {feedback && (
             <ModerationFeedbackBanner feedback={feedback} onDismiss={() => setFeedback(undefined)} />
           )}
@@ -351,9 +343,9 @@ export function ProfileDetailPage() {
             />
           )}
           {profile && <ProfileContent profile={profile} />}
-        </div>
+      </div>
 
-        {profile && canModerate && (
+      {profile && canModerate && (
           <section className="sticky bottom-4 z-10 mt-6 rounded-[26px] border border-[#7657ff]/45 bg-[#111]/95 p-5 shadow-2xl backdrop-blur md:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end">
               <div className="min-w-0 flex-1">
@@ -393,8 +385,7 @@ export function ProfileDetailPage() {
               </div>
             </div>
           </section>
-        )}
-      </div>
-    </main>
+      )}
+    </div>
   )
 }

@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { ProtectedRoute } from './ProtectedRoute'
+import { AdminLayout } from '../layout/AdminLayout'
+import { AdminSectionUnavailable } from '../../common/components/AdminSectionUnavailable'
 import { AdminLoginPage } from '../../features/auth/pages/AdminLoginPage'
 import { AdminDashboardPage } from '../../features/dashboard/pages/AdminDashboardPage'
 import { PendingProfilesPage } from '../../features/profiles/pages/PendingProfilesPage'
@@ -14,9 +16,31 @@ export function AppRoutes() {
       <Route path="/forgot-password" element={<PasswordRecoveryPage />} />
       <Route path="/reset-password" element={<PasswordRecoveryPage reset />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<AdminDashboardPage />} />
-        <Route path="/admin/personals/pending" element={<PendingProfilesPage />} />
-        <Route path="/admin/personals/:profileId" element={<ProfileDetailPage />} />
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/personals/pending" element={<PendingProfilesPage />} />
+          <Route path="/admin/personals/:profileId" element={<ProfileDetailPage />} />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminSectionUnavailable
+                description="A listagem e o detalhe de contas serão conectados ao contrato administrativo na WEB-05."
+                eyebrow="USUÁRIOS"
+                title="Gestão de usuários"
+              />
+            }
+          />
+          <Route
+            path="/admin/modalities"
+            element={
+              <AdminSectionUnavailable
+                description="O catálogo, a edição e a ativação de modalidades serão conectados ao contrato administrativo na WEB-07."
+                eyebrow="MODALIDADES"
+                title="Catálogo de modalidades"
+              />
+            }
+          />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate replace to="/admin" />} />
     </Routes>

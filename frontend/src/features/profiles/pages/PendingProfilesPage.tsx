@@ -1,8 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 
-import { Logo } from '../../../common/components/Logo'
 import { ModerationFeedbackBanner } from '../components/ModerationFeedbackBanner'
 import { PendingProfileCard } from '../components/PendingProfileCard'
 import { QueueState } from '../components/QueueState'
@@ -91,21 +89,7 @@ export function PendingProfilesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-[#f6f4ee]">
-      <header className="border-b border-[#292929] bg-[#080808]/95 px-6 backdrop-blur lg:px-10">
-        <div className="mx-auto flex h-20 max-w-5xl items-center justify-between">
-          <Link aria-label="Voltar ao dashboard" to="/admin">
-            <Logo compact />
-          </Link>
-          <Link
-            className="rounded-full border border-[#292929] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
-            to="/admin">
-            Dashboard
-          </Link>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-5xl px-6 py-10 lg:py-14">
+    <div className="mx-auto max-w-5xl px-6 py-10 lg:py-14">
         <div className="flex flex-col gap-4 border-b border-[#292929] pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-bold tracking-[.18em] text-[#c7ff3d]">MODERAÇÃO</p>
@@ -164,7 +148,6 @@ export function PendingProfilesPage() {
             </div>
           )}
         </section>
-      </div>
-    </main>
+    </div>
   )
 }

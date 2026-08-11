@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
-import { Logo } from '../../../common/components/Logo'
 import { api } from '../../../common/services/api'
-import { useAuth } from '../../auth/context/useAuth'
 
 const metrics = [
   { label: 'Usuários ativos', value: '—', accent: 'text-[#c7ff3d]' },
@@ -12,40 +10,14 @@ const metrics = [
 ]
 
 export function AdminDashboardPage() {
-  const { email, logout } = useAuth()
-  const navigate = useNavigate()
   const healthQuery = useQuery({
     queryKey: ['api-health'],
     queryFn: async () => (await api.get<{ status: string }>('/actuator/health')).data,
     refetchInterval: 30_000,
   })
 
-  function handleLogout() {
-    logout()
-    navigate('/login', { replace: true })
-  }
-
   return (
-    <main className="min-h-screen bg-[#080808] text-[#f6f4ee]">
-      <header className="border-b border-[#292929] bg-[#080808]/95 px-6 backdrop-blur lg:px-10">
-        <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between">
-          <Logo compact />
-          <div className="flex items-center gap-5">
-            <div className="hidden text-right sm:block">
-              <p className="text-xs font-bold tracking-[.12em] text-[#777]">ADMIN</p>
-              <p className="mt-1 text-sm text-[#aaaaaa]">{email}</p>
-            </div>
-            <button
-              className="rounded-full border border-[#292929] px-5 py-2.5 text-sm font-bold transition hover:border-[#c7ff3d] hover:text-[#c7ff3d]"
-              onClick={handleLogout}
-              type="button">
-              Sair
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10 lg:py-16">
+    <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10 lg:py-16">
         <div className="flex flex-col gap-6 border-b border-[#292929] pb-10 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-3 text-xs font-bold tracking-[.18em] text-[#c7ff3d]">VISÃO GERAL</p>
@@ -113,7 +85,6 @@ export function AdminDashboardPage() {
             </p>
           </article>
         </section>
-      </div>
-    </main>
+    </div>
   )
 }
