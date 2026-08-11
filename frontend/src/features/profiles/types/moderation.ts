@@ -18,7 +18,7 @@ export type ModerationAction = 'approve' | 'reject'
 export type ModerationFeedback = {
   profileId: string
   profileName: string
-  action: ModerationAction
+  action: ModerationAction | 'suspend' | 'reactivate'
   status: 'success' | 'error'
   message: string
 }
