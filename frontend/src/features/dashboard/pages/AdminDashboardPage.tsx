@@ -91,6 +91,7 @@ export function AdminDashboardPage() {
   const data = metricsQuery.data
   const funnelMetrics = data
     ? [
+        { label: 'Contas registradas', value: data.funnel.accountsRegistered, accent: 'text-[#c7ff3d]' },
         { label: 'Contas concluídas', value: data.funnel.accountsCompleted, accent: 'text-[#c7ff3d]' },
         { label: 'Perfis iniciados', value: data.funnel.profilesStarted, accent: 'text-[#f6f4ee]' },
         { label: 'Perfis enviados', value: data.funnel.profilesSubmitted, accent: 'text-[#a999ff]' },
@@ -103,11 +104,12 @@ export function AdminDashboardPage() {
         { label: 'Pesquisas', description: 'Consultas ao catálogo', metrics: data.searches },
         { label: 'Perfis visualizados', description: 'Aberturas de detalhes', metrics: data.profileViews },
         { label: 'Contatos no WhatsApp', description: 'Intenção de conversão', metrics: data.whatsappContacts },
+        { label: 'Retornos ao app', description: 'Voltas ao aplicativo', metrics: data.returns },
       ]
     : []
   const hasNoData =
     data !== undefined &&
-    [...Object.values(data.funnel), data.searches.raw, data.profileViews.raw, data.whatsappContacts.raw]
+    [...Object.values(data.funnel), data.searches.raw, data.profileViews.raw, data.whatsappContacts.raw, data.returns.raw]
       .every((value) => value === 0)
 
   const healthLabel = healthQuery.isPending
@@ -266,6 +268,10 @@ export function AdminDashboardPage() {
               </div>
             </section>
 
+            <section className="mt-8 rounded-[26px] border border-[#292929] bg-[#111] p-6">
+              <h2 className="font-['Manrope'] text-xl font-extrabold">Filtros usados nas pesquisas</h2>
+              <p className="mt-3 text-sm text-[#aaa]">Modalidade: {formatCount(data.filters.modality)} · Bairro: {formatCount(data.filters.neighborhood)} · Atendimento: {formatCount(data.filters.serviceMode)}</p>
+            </section>
             <section className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
               <article className="rounded-[26px] border border-[#7657ff]/30 bg-[#111] p-6">
                 <p className="text-xs font-bold tracking-[.13em] text-[#7657ff]">MODERAÇÃO</p>
@@ -277,7 +283,7 @@ export function AdminDashboardPage() {
               </article>
               <article className="rounded-[26px] border border-[#292929] bg-[#111] p-6">
                 <p className="text-xs font-bold tracking-[.13em] text-[#777]">LEITURA DOS DADOS</p>
-                <p className="mt-4 text-sm leading-6 text-[#aaa]">Algumas métricas ainda não são registradas com os dados necessários e aparecem como indisponíveis. Contas concluídas representam contas com e-mail confirmado; perfis enviados contam perfis distintos com alguma revisão enviada no período.</p>
+                <p className="mt-4 text-sm leading-6 text-[#aaa]">Contagens únicas consideram visitantes identificados ou contas autenticadas; eventos antigos sem identificação entram apenas nos totais. As ações de revisão são registradas a partir de {new Date(data.trackingStartedAt).toLocaleDateString('pt-BR')}.</p>
               </article>
             </section>
           </>

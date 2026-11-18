@@ -7,6 +7,7 @@ export type DashboardPeriod = {
 }
 
 export type FunnelMetrics = {
+  accountsRegistered: number
   accountsCompleted: number
   profilesStarted: number
   profilesSubmitted: number
@@ -25,6 +26,9 @@ export type AdminDashboard = {
   searches: EventMetrics
   profileViews: EventMetrics
   whatsappContacts: EventMetrics
+  returns: EventMetrics
+  filters: { modality: number; neighborhood: number; serviceMode: number }
+  trackingStartedAt: string
 }
 
 export type DashboardRange = {

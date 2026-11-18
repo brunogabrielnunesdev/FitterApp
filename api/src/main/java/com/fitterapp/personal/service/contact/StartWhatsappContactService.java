@@ -1,13 +1,8 @@
 package com.fitterapp.personal.service.contact;
 
-import com.fitterapp.analytics.domain.ContactEventActions;
-import com.fitterapp.analytics.entity.event.EventSource;
-import com.fitterapp.analytics.repository.ContactEventRepository;
+import com.fitterapp.analytics.service.MarketplaceMetricsService;
 import com.fitterapp.personal.exception.PublicProfileNotFoundException;
 import com.fitterapp.personal.repository.ProfileRepository;
-import com.fitterapp.user.repository.UserRepository;
-import java.time.Clock;
-import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class StartWhatsappContactService {
-
   private final ProfileRepository profiles;
-  private final UserRepository users;
-  private final ContactEventRepository contactEvents;
-  private final Clock clock;
+  private final MarketplaceMetricsService metrics;
 
   @Transactional
   public StartWhatsappContactResult start(StartWhatsappContactCommand command) {
@@ -27,13 +19,12 @@ public class StartWhatsappContactService {
         profiles
             .findPublishedBySlug(command.slug())
             .orElseThrow(PublicProfileNotFoundException::new);
-    var viewer =
-        command.viewerId() == null ? null : users.findById(command.viewerId()).orElse(null);
-    OffsetDateTime now = OffsetDateTime.now(clock);
-
-    contactEvents.save(
-        ContactEventActions.whatsappToPersonal(viewer, profile, EventSource.MOBILE_APP, null, now));
-
+    metrics.contact(
+        command.viewerId(),
+        command.source(),
+        command.visitorId(),
+        command.idempotencyKey(),
+        profile.getId());
     String phoneNumber = profile.getPublishedRevision().getWhatsapp().replaceAll("\\D", "");
     return new StartWhatsappContactResult("https://wa.me/" + phoneNumber);
   }

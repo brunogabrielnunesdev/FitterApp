@@ -86,3 +86,17 @@ o endereço local padrão é `http://localhost:5173/reset-password`. O mesmo lin
 funciona para contas usadas no mobile. O token expira após 30 minutos e só pode
 ser usado uma vez. Em caso de falha na entrega, a resposta permanece genérica e
 a falha é registrada nos logs da API, sem incluir e-mail ou token.
+
+## Métricas do marketplace
+
+O catálogo registra pesquisas na primeira página, visualizações de perfil e
+contatos iniciados. O mobile informa os cabeçalhos `X-Visitor-Id` e
+`X-Idempotency-Key`: requisições repetidas com a mesma identidade e chave não
+são contabilizadas novamente para o mesmo tipo de evento. Quando não há
+identificador de visitante, uma conta autenticada pode ser usada como identidade;
+eventos sem nenhuma identidade continuam nos totais, mas não na contagem única.
+Um retorno ao aplicativo é uma abertura posterior associada à mesma identidade.
+
+O dashboard registra contagens por período e filtros usados. O histórico de
+envio, aprovação e reprovação começa com a aplicação da migration V12; os dados
+de períodos anteriores não podem ser reconstruídos integralmente.

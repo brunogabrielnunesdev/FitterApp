@@ -25,6 +25,8 @@ public class AdminDashboardService {
     }
     OffsetDateTime start = from.atStartOfDay(zone).toOffsetDateTime();
     OffsetDateTime end = to.plusDays(1).atStartOfDay(zone).toOffsetDateTime();
+    Long registered =
+        count("select count(*) from users where created_at >= ? and created_at < ?", start, end);
     Long accounts =
         count(
             "select count(*) from users where email_verified_at >= ? and email_verified_at < ?",
@@ -37,20 +39,66 @@ public class AdminDashboardService {
             end);
     Long submitted =
         count(
-            "select count(distinct personal_id) from personal_profile_revisions where submitted_at >= ? and submitted_at < ?",
+            "select count(distinct profile_id) from profile_review_events where event_type='SUBMITTED' and occurred_at >= ? and occurred_at < ?",
             start,
             end);
-    Long contacts =
+    Long approved =
         count(
-            "select count(*) from contact_events where occurred_at >= ? and occurred_at < ?",
+            "select count(distinct profile_id) from profile_review_events where event_type='APPROVED' and occurred_at >= ? and occurred_at < ?",
             start,
             end);
+    Long rejected =
+        count(
+            "select count(distinct profile_id) from profile_review_events where event_type='REJECTED' and occurred_at >= ? and occurred_at < ?",
+            start,
+            end);
+    Event searches = event("search_events", "user_id", start, end);
+    Event views = event("profile_view_events", "viewer_user_id", start, end);
+    Event contacts = event("contact_events", "user_id", start, end);
+    Event returns = event("app_access_events", "user_id", start, end, " and event_type='RETURNED'");
+    Long modality =
+        count(
+            "select count(*) from search_events where jsonb_exists(filters, 'modalityId') and occurred_at >= ? and occurred_at < ?",
+            start,
+            end);
+    Long neighborhood =
+        count(
+            "select count(*) from search_events where jsonb_exists(filters, 'neighborhood') and occurred_at >= ? and occurred_at < ?",
+            start,
+            end);
+    Long serviceMode =
+        count(
+            "select count(*) from search_events where jsonb_exists(filters, 'serviceMode') and occurred_at >= ? and occurred_at < ?",
+            start,
+            end);
+    OffsetDateTime trackingStartedAt =
+        jdbc.queryForObject("select started_at from metrics_tracking_start", OffsetDateTime.class);
     return new Dashboard(
         new Period(from, to, zone.getId(), start, end),
-        new Funnel(accounts, profiles, submitted, null, null),
-        new Event(null, null),
-        new Event(null, null),
-        new Event(contacts, null));
+        new Funnel(registered, accounts, profiles, submitted, approved, rejected),
+        searches,
+        views,
+        contacts,
+        returns,
+        new Filters(modality, neighborhood, serviceMode),
+        trackingStartedAt);
+  }
+
+  private Event event(String table, String userColumn, OffsetDateTime start, OffsetDateTime end) {
+    return event(table, userColumn, start, end, "");
+  }
+
+  private Event event(
+      String table, String userColumn, OffsetDateTime start, OffsetDateTime end, String filter) {
+    String sql =
+        "select count(*) as total, count(distinct coalesce(identity_key, 'u:' || "
+            + userColumn
+            + "::text)) as unique_count from "
+            + table
+            + " where occurred_at >= ? and occurred_at < ?"
+            + filter;
+    return jdbc.queryForObject(
+        sql, (rs, row) -> new Event(rs.getLong("total"), rs.getLong("unique_count")), start, end);
   }
 
   private Long count(String sql, OffsetDateTime start, OffsetDateTime end) {
@@ -65,6 +113,7 @@ public class AdminDashboardService {
       OffsetDateTime endExclusive) {}
 
   public record Funnel(
+      Long accountsRegistered,
       Long accountsCompleted,
       Long profilesStarted,
       Long profilesSubmitted,
@@ -73,6 +122,15 @@ public class AdminDashboardService {
 
   public record Event(Long raw, Long unique) {}
 
+  public record Filters(Long modality, Long neighborhood, Long serviceMode) {}
+
   public record Dashboard(
-      Period period, Funnel funnel, Event searches, Event profileViews, Event whatsappContacts) {}
+      Period period,
+      Funnel funnel,
+      Event searches,
+      Event profileViews,
+      Event whatsappContacts,
+      Event returns,
+      Filters filters,
+      OffsetDateTime trackingStartedAt) {}
 }

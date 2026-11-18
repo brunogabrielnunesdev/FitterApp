@@ -10,13 +10,20 @@ function randomIdentifier() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 }
 
-export async function getVisitorId() {
-  const existing = await SecureStore.getItemAsync(VISITOR_ID_KEY);
-  if (existing) return existing;
+let visitorIdPromise: Promise<string> | undefined;
 
-  const visitorId = randomIdentifier();
-  await SecureStore.setItemAsync(VISITOR_ID_KEY, visitorId);
-  return visitorId;
+export function getVisitorId() {
+  visitorIdPromise ??= (async () => {
+    const existing = await SecureStore.getItemAsync(VISITOR_ID_KEY);
+    if (existing) return existing;
+    const visitorId = randomIdentifier();
+    await SecureStore.setItemAsync(VISITOR_ID_KEY, visitorId);
+    return visitorId;
+  })().catch((error) => {
+    visitorIdPromise = undefined;
+    throw error;
+  });
+  return visitorIdPromise;
 }
 
 export function createIdempotencyKey() {

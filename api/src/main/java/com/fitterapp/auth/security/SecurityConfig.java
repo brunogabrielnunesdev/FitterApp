@@ -31,6 +31,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/public/events/app-open")
+                    .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/v1/public/personals/*/contact/whatsapp")
                     .permitAll()
                     .requestMatchers("/actuator/health", "/error")
@@ -63,7 +65,8 @@ public class SecurityConfig {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(allowedOrigins);
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setAllowedHeaders(
+        List.of("Authorization", "Content-Type", "X-Visitor-Id", "X-Idempotency-Key"));
     configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
