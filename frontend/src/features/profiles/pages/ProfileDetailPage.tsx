@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { api } from '../../../common/services/api'
 import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { ModerationFeedbackBanner } from '../components/ModerationFeedbackBanner'
@@ -109,6 +110,22 @@ function DataItem({ label, children }: { label: string; children: React.ReactNod
   )
 }
 
+function ProtectedImage({ profileId, kind }: { profileId: string; kind: 'photo' | 'cref/document' }) {
+  const [imageUrl, setImageUrl] = useState<string>()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
+  useEffect(() => () => { if (imageUrl) URL.revokeObjectURL(imageUrl) }, [imageUrl])
+  async function load() {
+    setLoading(true)
+    setError(false)
+    try {
+      const { data } = await api.get<Blob>(`/api/v1/admin/personal-profiles/${profileId}/${kind}`, { responseType: 'blob' })
+      setImageUrl(URL.createObjectURL(data))
+    } catch { setError(true) } finally { setLoading(false) }
+  }
+  return <div className="mt-3">{imageUrl ? <img className="max-h-96 max-w-full rounded-xl" src={imageUrl} alt={kind === 'photo' ? 'Foto do perfil' : 'Documento do CREF'} /> : <button type="button" className="font-bold text-[#c7ff3d] underline" disabled={loading} onClick={() => void load()}>{loading ? 'Carregando...' : 'Visualizar imagem'}</button>}{error && <p className="mt-2 text-sm text-[#ff8a8a]">Não foi possível carregar a imagem.</p>}</div>
+}
+
 function ProfileContent({ profile }: { profile: AdminProfileDetail }) {
   const { revision, account } = profile
 
@@ -147,6 +164,7 @@ function ProfileContent({ profile }: { profile: AdminProfileDetail }) {
       <DetailCard className="lg:col-span-2" eyebrow="APRESENTAÇÃO" title={revision.fullName}>
         <div className="grid gap-7 lg:grid-cols-[1.4fr_.6fr]">
           <div>
+            {revision.profileImageKey && <ProtectedImage profileId={profile.profileId} kind="photo" />}
             <p className="text-xs font-bold tracking-[.08em] text-[#777] uppercase">Biografia</p>
             <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#d6d2ca]">
               {revision.biography || 'Não informada'}
@@ -188,7 +206,7 @@ function ProfileContent({ profile }: { profile: AdminProfileDetail }) {
             <DataItem label="Número">{revision.cref.registrationCode}</DataItem>
             <DataItem label="Status">{crefStatusLabels[revision.cref.status]}</DataItem>
             <DataItem label="Documento">
-              {revision.cref.documentImageKey ? 'Documento anexado' : 'Não anexado'}
+              {revision.cref.documentImageKey ? <ProtectedImage profileId={profile.profileId} kind="cref/document" /> : 'Não anexado'}
             </DataItem>
             <DataItem label="Verificado em">{formatDate(revision.cref.verifiedAt)}</DataItem>
             {revision.cref.rejectionReason && (

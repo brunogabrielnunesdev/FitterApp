@@ -43,6 +43,15 @@ class SubmitProfileForReviewServiceTests {
   }
 
   @Test
+  void submitsCompleteProfileWithoutOptionalCref() {
+    Fixture f = fixture(true);
+    ReflectionTestUtils.setField(f.revision, "cref", null);
+    stub(f, 1, 1, 1);
+    service().submit(new SubmitProfileForReviewCommand(f.userId, f.profileId));
+    assertThat(f.revision.getStatus()).isEqualTo(ProfileRevisionStatus.PENDING_REVIEW);
+  }
+
+  @Test
   void rejectsIncompleteProfile() {
     Fixture f = fixture(false);
     when(profiles.findByIdAndUserId(f.profileId, f.userId)).thenReturn(Optional.of(f.profile));

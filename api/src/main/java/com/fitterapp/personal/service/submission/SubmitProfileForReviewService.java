@@ -46,8 +46,7 @@ public class SubmitProfileForReviewService {
     return hasText(revision.getFullName())
         && hasText(revision.getBiography())
         && hasText(revision.getWhatsapp())
-        && revision.getCref() != null
-        && hasText(revision.getCref().getDocumentImageKey())
+        && (revision.getCref() == null || hasText(revision.getCref().getDocumentImageKey()))
         && revisionModalityRepository.countByIdRevisionId(revision.getId()) > 0
         && revisionServiceModeRepository.countByIdRevisionId(revision.getId()) > 0
         && revisionServiceAreaRepository.countByRevisionId(revision.getId()) > 0;

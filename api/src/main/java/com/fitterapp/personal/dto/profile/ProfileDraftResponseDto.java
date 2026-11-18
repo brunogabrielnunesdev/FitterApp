@@ -16,6 +16,7 @@ public record ProfileDraftResponseDto(
     String rejectionReason,
     String fullName,
     String biography,
+    String profileImageKey,
     String whatsapp,
     Short experienceStartedYear,
     String certifications,

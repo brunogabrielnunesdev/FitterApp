@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { profileImageUrl } from '@/common/services/media';
 
 import { colors } from '@/common/theme/colors';
 import { PublicProfileCard } from '@/features/catalog/types/catalog';
@@ -16,7 +17,7 @@ export function ProfileCard({ profile, onPress }: ProfileCardProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{profile.fullName.slice(0, 1).toUpperCase()}</Text>
+        {profileImageUrl(profile.profileImageKey) ? <Image source={{ uri: profileImageUrl(profile.profileImageKey) }} style={{ width: 56, height: 56, borderRadius: 28 }} /> : <Text style={styles.avatarText}>{profile.fullName.slice(0, 1).toUpperCase()}</Text>}
       </View>
       <View style={styles.content}>
         <Text style={styles.name}>{profile.fullName}</Text>

@@ -100,3 +100,28 @@ Um retorno ao aplicativo é uma abertura posterior associada à mesma identidade
 O dashboard registra contagens por período e filtros usados. O histórico de
 envio, aprovação e reprovação começa com a aplicação da migration V12; os dados
 de períodos anteriores não podem ser reconstruídos integralmente.
+
+## Mídia em disco na VPS
+
+Defina `FITTERAPP_STORAGE_ROOT` como um diretório persistente, por exemplo
+`/var/lib/fitterapp/uploads`, fora do diretório publicado pelo Nginx. O processo
+da API precisa de permissão de leitura e escrita nesse diretório. Ao executar
+a API em contêiner, monte o diretório da VPS como volume e configure essa
+variável com o caminho **dentro** do contêiner; não use a camada descartável
+do contêiner. O padrão para desenvolvimento local é `./uploads` na pasta da API.
+
+Imagens JPEG, PNG e WebP de até 5 MB são validadas, redimensionadas para no
+máximo 1600 pixels no maior lado e convertidas para WebP. Apenas a chave fica no
+banco. O codec WebP incluído oferece binários para Windows e Linux x86-64;
+confirme a arquitetura antes de provisionar outra plataforma.
+
+O Nginx deve encaminhar `/api/` para a API com `client_max_body_size 6m`.
+Não exponha o diretório de uploads diretamente por `alias` ou diretório estático:
+a rota `/api/v1/public/media/` só entrega fotos da versão publicada, enquanto
+fotos em análise e documentos CREF usam rotas administrativas autenticadas.
+
+Inclua o diretório persistente e um dump consistente do PostgreSQL na mesma
+rotina de backup, grave as cópias fora da VPS e teste a restauração dos dois
+conjuntos. As imagens antigas não são apagadas automaticamente, pois podem
+continuar referenciadas por outras revisões. Configure permissões restritas
+no diretório e nas cópias, já que ele contém documentos privados.

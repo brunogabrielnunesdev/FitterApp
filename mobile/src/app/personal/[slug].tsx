@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { profileImageUrl } from '@/common/services/media';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
@@ -64,7 +65,7 @@ export default function PersonalProfileScreen() {
           <Text style={styles.back}>‹ Voltar</Text>
         </Pressable>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{profile.fullName.slice(0, 1).toUpperCase()}</Text>
+          {profileImageUrl(profile.profileImageKey) ? <Image source={{ uri: profileImageUrl(profile.profileImageKey) }} style={{ width: 96, height: 96, borderRadius: 48 }} /> : <Text style={styles.avatarText}>{profile.fullName.slice(0, 1).toUpperCase()}</Text>}
         </View>
         <Text style={styles.name}>{profile.fullName}</Text>
         <Text style={styles.biography}>{profile.biography ?? 'Perfil profissional no FitterApp.'}</Text>

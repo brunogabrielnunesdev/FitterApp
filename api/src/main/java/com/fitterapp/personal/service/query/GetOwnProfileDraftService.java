@@ -38,6 +38,7 @@ public class GetOwnProfileDraftService {
         revision.getRejectionReason(),
         revision.getFullName(),
         revision.getBiography(),
+        revision.getProfileImageKey(),
         revision.getWhatsapp(),
         revision.getExperienceStartedYear(),
         revision.getCertifications(),

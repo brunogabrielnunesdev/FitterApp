@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
+import * as ImagePicker from 'expo-image-picker';
 import { Redirect, router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/common/components/button/PrimaryButton';
@@ -20,7 +21,8 @@ import {
   ServiceArea,
   submitProfile,
   startProfileRevision,
-  updateCref,
+  uploadCrefDocument,
+  uploadProfilePhoto,
   updateProfileDraft,
   updateProfileModalities,
   updateServiceAreas,
@@ -50,6 +52,7 @@ function PersonalProfileContent() {
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [requestError, setRequestError] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [editingRejected, setEditingRejected] = useState(false);
   const status = useQuery({ queryKey: ['own-profile-status'], queryFn: getOwnProfile, retry: false });
@@ -66,13 +69,6 @@ function PersonalProfileContent() {
     mutationFn: async () => {
       if (!profile) return;
       if (step === 0) await updateProfileDraft(profile.profileId, profile);
-      if (step === 1) {
-        const registrationCode = profile.crefRegistrationCode?.trim();
-        const documentImageKey = profile.crefDocumentImageKey?.trim();
-        if (registrationCode && documentImageKey) {
-          await updateCref(profile.profileId, registrationCode, documentImageKey);
-        }
-      }
       if (step === 2) await updateProfileModalities(profile.profileId, profile.modalityIds);
       if (step === 3) await updateServiceModes(profile.profileId, profile.serviceModes);
       if (step === 4) await updateServiceAreas(profile.profileId, normalizeAreas(profile.serviceAreas));
@@ -84,6 +80,25 @@ function PersonalProfileContent() {
     onSuccess: async () => {
       setSubmitted(true);
       await Promise.all([draft.refetch(), status.refetch()]);
+    },
+    onError: (error) => setRequestError(getErrorMessage(error)),
+  });
+
+  const uploadImage = useMutation({
+    mutationFn: async (kind: 'photo' | 'cref') => {
+      if (!profile) return;
+      if (kind === 'cref' && !profile.crefRegistrationCode?.trim()) throw new Error('Informe o número do CREF antes de selecionar o documento.');
+      const selected = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: kind === 'photo', quality: 1 });
+      if (selected.canceled) return;
+      const image = selected.assets[0];
+      if (kind === 'photo') {
+        const result = await uploadProfilePhoto(profile.profileId, image);
+        setPhotoPreview(image.uri);
+        queryClient.setQueryData<ProfileDraft>(['profile-draft'], (current) => current ? { ...current, profileImageKey: result.key } : current);
+      } else {
+        const result = await uploadCrefDocument(profile.profileId, profile.crefRegistrationCode!.trim(), image);
+        queryClient.setQueryData<ProfileDraft>(['profile-draft'], (current) => current ? { ...current, crefDocumentImageKey: result.key, crefStatus: 'PENDING_REVIEW' } : current);
+      }
     },
     onError: (error) => setRequestError(getErrorMessage(error)),
   });
@@ -181,6 +196,9 @@ function PersonalProfileContent() {
 
         {step === 0 && (
           <>
+            {photoPreview && <Image source={{ uri: photoPreview }} style={{ width: 96, height: 96, borderRadius: 48 }} />}
+            <Text style={styles.hint}>{profile.profileImageKey ? 'Foto de perfil anexada.' : 'Adicione uma foto de perfil (JPEG, PNG ou WebP, até 5 MB).'}</Text>
+            <PrimaryButton label={profile.profileImageKey ? 'Alterar foto' : 'Selecionar foto'} loading={uploadImage.isPending} onPress={() => { setRequestError(null); uploadImage.mutate('photo'); }} />
             <Field label="Nome profissional *" value={profile.fullName ?? ''} error={errors.fullName} onChangeText={(fullName) => setProfile({ fullName })} />
             <Field label="Biografia *" multiline value={profile.biography ?? ''} error={errors.biography} onChangeText={(biography) => setProfile({ biography })} />
             <Field label="WhatsApp *" keyboardType="phone-pad" value={profile.whatsapp ?? ''} error={errors.whatsapp} onChangeText={(whatsapp) => setProfile({ whatsapp })} />
@@ -193,9 +211,10 @@ function PersonalProfileContent() {
         {step === 1 && (
           <>
             <Text style={styles.hint}>O CREF é opcional. Se optar por informá-lo, preencha o número e a referência do documento juntos.</Text>
-            <Field label="Número do CREF" autoCapitalize="characters" value={profile.crefRegistrationCode ?? ''} error={errors.crefRegistrationCode} onChangeText={(crefRegistrationCode) => setProfile({ crefRegistrationCode })} />
-            <Field label="Referência do documento" autoCapitalize="none" value={profile.crefDocumentImageKey ?? ''} error={errors.crefDocumentImageKey} onChangeText={(crefDocumentImageKey) => setProfile({ crefDocumentImageKey })} />
-            <Text style={styles.hint}>Informe a chave ou URL do documento já armazenado. O seletor de arquivos será conectado quando o serviço de upload estiver disponível.</Text>
+            <Field label="Número do CREF" autoCapitalize="characters" value={profile.crefRegistrationCode ?? ''} error={errors.crefRegistrationCode} onChangeText={(crefRegistrationCode) => setProfile({ crefRegistrationCode, crefDocumentImageKey: null })} />
+            <Text style={styles.hint}>{profile.crefDocumentImageKey ? 'Documento anexado.' : 'Envie uma imagem do documento (JPEG, PNG ou WebP, até 5 MB).'}</Text>
+            {errors.crefDocumentImageKey && <Text style={styles.fieldError}>{errors.crefDocumentImageKey}</Text>}
+            <PrimaryButton label={profile.crefDocumentImageKey ? 'Alterar documento' : 'Selecionar documento'} loading={uploadImage.isPending} onPress={() => { setRequestError(null); uploadImage.mutate('cref'); }} />
           </>
         )}
 
@@ -405,7 +424,7 @@ function validateStep(step: number, profile: ProfileDraft): FieldErrors {
     }
     if (hasRegistrationCode !== hasDocumentImageKey) {
       if (!hasRegistrationCode) errors.crefRegistrationCode = 'Informe o número do CREF junto com o documento.';
-      if (!hasDocumentImageKey) errors.crefDocumentImageKey = 'Informe a referência do documento junto com o CREF.';
+      if (!hasDocumentImageKey) errors.crefDocumentImageKey = 'Envie o documento junto com o CREF.';
     }
   }
   if (step === 2 && profile.modalityIds.length === 0) errors.modalityIds = 'Selecione ao menos uma modalidade.';
@@ -443,6 +462,7 @@ function getErrorMessage(error: unknown) {
     if (data?.message || data?.detail) return data.message ?? data.detail!;
     if (!error.response) return 'Não foi possível conectar ao servidor. Tente novamente.';
   }
+  if (error instanceof Error && error.message.startsWith('Informe o número do CREF')) return error.message;
   return 'Não foi possível concluir a operação. Tente novamente.';
 }
 

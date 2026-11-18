@@ -18,6 +18,7 @@ export type ProfileDraft = {
   rejectionReason: string | null;
   fullName: string | null;
   biography: string | null;
+  profileImageKey: string | null;
   whatsapp: string | null;
   experienceStartedYear: number | null;
   certifications: string | null;
@@ -122,4 +123,20 @@ export async function unpublishProfile(profileId: string) {
 
 export async function startProfileRevision(profileId: string) {
   await api.post(`/api/v1/me/personal-profile/${profileId}/revisions`);
+}
+
+export type SelectedImage = { uri: string; mimeType?: string | null; fileName?: string | null };
+
+function imageForm(image: SelectedImage) {
+  const data = new FormData();
+  data.append('file', { uri: image.uri, name: image.fileName ?? 'image.jpg', type: image.mimeType ?? 'image/jpeg' } as unknown as Blob);
+  return data;
+}
+
+export async function uploadProfilePhoto(profileId: string, image: SelectedImage) {
+  return (await api.post<{ key: string }>(`/api/v1/me/personal-profile/${profileId}/photo`, imageForm(image), { headers: { 'Content-Type': 'multipart/form-data' } })).data;
+}
+
+export async function uploadCrefDocument(profileId: string, registrationCode: string, image: SelectedImage) {
+  return (await api.post<{ key: string }>(`/api/v1/me/personal-profile/${profileId}/cref/document`, imageForm(image), { params: { registrationCode }, headers: { 'Content-Type': 'multipart/form-data' } })).data;
 }
