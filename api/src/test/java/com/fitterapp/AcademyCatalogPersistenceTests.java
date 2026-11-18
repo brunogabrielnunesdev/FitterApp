@@ -2,6 +2,12 @@ package com.fitterapp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fitterapp.academy.domain.AcademyCnpjActions;
+import com.fitterapp.academy.domain.AcademyMemberActions;
+import com.fitterapp.academy.domain.AcademyPersonalPartnershipActions;
+import com.fitterapp.academy.domain.AcademyProfileActions;
+import com.fitterapp.academy.domain.AcademyProfileRevisionActions;
+import com.fitterapp.academy.domain.AcademyRevisionModalityActions;
 import com.fitterapp.academy.entity.cnpj.AcademyCnpj;
 import com.fitterapp.academy.entity.cnpj.AcademyCnpjStatus;
 import com.fitterapp.academy.entity.member.AcademyMember;
@@ -45,39 +51,48 @@ class AcademyCatalogPersistenceTests {
     User reviewer =
         activeUser("Platform Owner", "academy-reviewer@fitterapp.com", "+5544999999921", createdAt);
 
-    AcademyProfile academy = AcademyProfile.draft("studio_performance", createdAt);
+    AcademyProfile academy = AcademyProfileActions.draft("studio_performance", createdAt);
     entityManager.persist(academy);
     entityManager.flush();
 
-    AcademyCnpj cnpj = AcademyCnpj.pendingReview(academy, "12345678000190", createdAt);
+    AcademyCnpj cnpj = AcademyCnpjActions.pendingReview(academy, "12345678000190", createdAt);
     entityManager.persist(cnpj);
 
     AcademyProfileRevision revision =
-        AcademyProfileRevision.draft(academy, 1, applicant, true, createdAt);
-    revision.updatePublicData(
+        AcademyProfileRevisionActions.draft(academy, 1, applicant, true, createdAt);
+    AcademyProfileRevisionActions.updatePublicData(
+        revision,
         "Studio Performance",
         "Treinamento próximo e individualizado.",
         "+5544999999920",
         "@studio.performance",
         "academies/" + academy.getId() + "/" + java.util.UUID.randomUUID() + ".webp",
         createdAt);
-    revision.updateAddress(
-        "87501000", "Avenida Paraná", "1200", "Sala 2", "Zona I", "Umuarama", "PR", createdAt);
-    revision.assignCnpj(cnpj, createdAt);
+    AcademyProfileRevisionActions.updateAddress(
+        revision,
+        "87501000",
+        "Avenida Paraná",
+        "1200",
+        "Sala 2",
+        "Zona I",
+        "Umuarama",
+        "PR",
+        createdAt);
+    AcademyProfileRevisionActions.assignCnpj(revision, cnpj, createdAt);
     entityManager.persist(revision);
     entityManager.flush();
 
-    academy.setCurrentRevision(revision, createdAt);
+    AcademyProfileActions.setCurrentRevision(academy, revision, createdAt);
 
     OffsetDateTime submittedAt = createdAt.plusMinutes(5);
     OffsetDateTime approvedAt = createdAt.plusMinutes(10);
     OffsetDateTime publishedAt = createdAt.plusMinutes(15);
-    revision.submit(submittedAt);
-    academy.submitForReview(submittedAt);
-    cnpj.verify(reviewer, approvedAt);
-    revision.approve(reviewer, approvedAt);
-    academy.approve(approvedAt);
-    academy.publish(revision, publishedAt);
+    AcademyProfileRevisionActions.submit(revision, submittedAt);
+    AcademyProfileActions.submitForReview(academy, submittedAt);
+    AcademyCnpjActions.verify(cnpj, reviewer, approvedAt);
+    AcademyProfileRevisionActions.approve(revision, reviewer, approvedAt);
+    AcademyProfileActions.approve(academy, approvedAt);
+    AcademyProfileActions.publish(academy, revision, publishedAt);
 
     entityManager.flush();
     entityManager.clear();
@@ -103,19 +118,21 @@ class AcademyCatalogPersistenceTests {
     OffsetDateTime createdAt = now();
     User owner =
         activeUser("Academy Owner", "member-owner@fitterapp.com", "+5544999999922", createdAt);
-    AcademyProfile academy = AcademyProfile.draft("movimento_academia", createdAt);
+    AcademyProfile academy = AcademyProfileActions.draft("movimento_academia", createdAt);
     entityManager.persist(academy);
     entityManager.flush();
 
-    AcademyMember member = AcademyMember.active(academy, owner, AcademyMemberRole.OWNER, createdAt);
+    AcademyMember member =
+        AcademyMemberActions.active(academy, owner, AcademyMemberRole.OWNER, createdAt);
     AcademyProfileRevision revision =
-        AcademyProfileRevision.draft(academy, 1, owner, true, createdAt);
+        AcademyProfileRevisionActions.draft(academy, 1, owner, true, createdAt);
     entityManager.persist(member);
     entityManager.persist(revision);
     entityManager.flush();
 
     Modality modality = entityManager.find(Modality.class, (short) 1);
-    AcademyRevisionModality revisionModality = AcademyRevisionModality.link(revision, modality);
+    AcademyRevisionModality revisionModality =
+        AcademyRevisionModalityActions.link(revision, modality);
     entityManager.persist(revisionModality);
     entityManager.flush();
     entityManager.clear();
@@ -151,7 +168,7 @@ class AcademyCatalogPersistenceTests {
             "+5544999999924",
             createdAt);
 
-    AcademyProfile academy = AcademyProfile.draft("parceria_fitness", createdAt);
+    AcademyProfile academy = AcademyProfileActions.draft("parceria_fitness", createdAt);
     Profile personal = Profile.draft("Partnership Personal", "partnership-personal", createdAt);
     personal.linkUser(personalUser, createdAt);
     entityManager.persist(academy);
@@ -159,13 +176,13 @@ class AcademyCatalogPersistenceTests {
     entityManager.flush();
 
     AcademyPersonalPartnership partnership =
-        AcademyPersonalPartnership.request(
+        AcademyPersonalPartnershipActions.request(
             academy, personal, PartnershipInitiator.ACADEMY, academyOwner, createdAt);
     entityManager.persist(partnership);
     entityManager.flush();
 
     OffsetDateTime acceptedAt = createdAt.plusMinutes(5);
-    partnership.accept(personalUser, acceptedAt);
+    AcademyPersonalPartnershipActions.accept(partnership, personalUser, acceptedAt);
     entityManager.flush();
     entityManager.clear();
 

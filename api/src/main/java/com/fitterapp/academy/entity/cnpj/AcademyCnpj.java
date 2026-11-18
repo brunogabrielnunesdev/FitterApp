@@ -13,9 +13,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -23,7 +24,9 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "academy_cnpjs")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AcademyCnpj {
 
   @Id @UuidGenerator private UUID id;
@@ -59,31 +62,4 @@ public class AcademyCnpj {
 
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;
-
-  public static AcademyCnpj pendingReview(
-      AcademyProfile academy, String registrationNumber, OffsetDateTime createdAt) {
-    AcademyCnpj cnpj = new AcademyCnpj();
-    cnpj.academy = academy;
-    cnpj.registrationNumber = registrationNumber;
-    cnpj.status = AcademyCnpjStatus.PENDING_REVIEW;
-    cnpj.createdAt = createdAt;
-    cnpj.updatedAt = createdAt;
-    return cnpj;
-  }
-
-  public void verify(User verifiedBy, OffsetDateTime verifiedAt) {
-    status = AcademyCnpjStatus.VERIFIED;
-    this.verifiedBy = verifiedBy;
-    this.verifiedAt = verifiedAt;
-    rejectionReason = null;
-    updatedAt = verifiedAt;
-  }
-
-  public void reject(User verifiedBy, String rejectionReason, OffsetDateTime rejectedAt) {
-    status = AcademyCnpjStatus.REJECTED;
-    this.verifiedBy = verifiedBy;
-    verifiedAt = rejectedAt;
-    this.rejectionReason = rejectionReason;
-    updatedAt = rejectedAt;
-  }
 }

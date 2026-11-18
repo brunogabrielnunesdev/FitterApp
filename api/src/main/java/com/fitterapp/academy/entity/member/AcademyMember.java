@@ -13,14 +13,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "academy_members")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AcademyMember {
 
   @EmbeddedId private AcademyMemberId id;
@@ -54,29 +57,4 @@ public class AcademyMember {
 
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;
-
-  public static AcademyMember active(
-      AcademyProfile academy, User user, AcademyMemberRole role, OffsetDateTime joinedAt) {
-    AcademyMember member = new AcademyMember();
-    member.id = new AcademyMemberId(academy.getId(), user.getId());
-    member.academy = academy;
-    member.user = user;
-    member.role = role;
-    member.status = AcademyMemberStatus.ACTIVE;
-    member.joinedAt = joinedAt;
-    member.createdAt = joinedAt;
-    member.updatedAt = joinedAt;
-    return member;
-  }
-
-  public void changeRole(AcademyMemberRole role, OffsetDateTime updatedAt) {
-    this.role = role;
-    this.updatedAt = updatedAt;
-  }
-
-  public void deactivate(OffsetDateTime deactivatedAt) {
-    status = AcademyMemberStatus.INACTIVE;
-    this.deactivatedAt = deactivatedAt;
-    updatedAt = deactivatedAt;
-  }
 }

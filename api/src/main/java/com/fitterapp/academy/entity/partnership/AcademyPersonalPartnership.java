@@ -14,15 +14,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "academy_personal_partnerships")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AcademyPersonalPartnership {
 
   @Id @UuidGenerator private UUID id;
@@ -65,42 +68,4 @@ public class AcademyPersonalPartnership {
 
   @Column(name = "updated_at", nullable = false)
   private OffsetDateTime updatedAt;
-
-  public static AcademyPersonalPartnership request(
-      AcademyProfile academy,
-      Profile personal,
-      PartnershipInitiator initiatedBy,
-      User requestedBy,
-      OffsetDateTime requestedAt) {
-    AcademyPersonalPartnership partnership = new AcademyPersonalPartnership();
-    partnership.academy = academy;
-    partnership.personal = personal;
-    partnership.initiatedBy = initiatedBy;
-    partnership.requestedBy = requestedBy;
-    partnership.status = PartnershipStatus.PENDING;
-    partnership.requestedAt = requestedAt;
-    partnership.createdAt = requestedAt;
-    partnership.updatedAt = requestedAt;
-    return partnership;
-  }
-
-  public void accept(User respondedBy, OffsetDateTime respondedAt) {
-    status = PartnershipStatus.ACCEPTED;
-    this.respondedBy = respondedBy;
-    this.respondedAt = respondedAt;
-    updatedAt = respondedAt;
-  }
-
-  public void reject(User respondedBy, OffsetDateTime respondedAt) {
-    status = PartnershipStatus.REJECTED;
-    this.respondedBy = respondedBy;
-    this.respondedAt = respondedAt;
-    updatedAt = respondedAt;
-  }
-
-  public void end(OffsetDateTime endedAt) {
-    status = PartnershipStatus.ENDED;
-    this.endedAt = endedAt;
-    updatedAt = endedAt;
-  }
 }
