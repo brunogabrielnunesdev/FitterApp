@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitterapp.analytics.entity.event.EventSource;
 import com.fitterapp.analytics.service.AdminDashboardService;
+import com.fitterapp.analytics.service.DailyMetricsService;
 import com.fitterapp.analytics.service.MarketplaceMetricsService;
 import com.fitterapp.personal.entity.profile.*;
 import com.fitterapp.personal.entity.service.ServiceMode;
@@ -24,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
   TestcontainersConfiguration.class,
   MarketplaceMetricsService.class,
   AdminDashboardService.class,
+  DailyMetricsService.class,
   MarketplaceMetricsIntegrationTests.Dependencies.class
 })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -43,6 +45,7 @@ class MarketplaceMetricsIntegrationTests {
 
   @Autowired MarketplaceMetricsService metrics;
   @Autowired AdminDashboardService dashboard;
+  @Autowired DailyMetricsService daily;
   @Autowired JdbcTemplate jdbc;
   @Autowired EntityManager entityManager;
 
@@ -103,5 +106,15 @@ class MarketplaceMetricsIntegrationTests {
     assertThat(data.filters().serviceMode()).isEqualTo(1);
     assertThat(data.funnel().profilesSubmitted()).isEqualTo(1);
     assertThat(data.funnel().profilesApproved()).isEqualTo(1);
+    var series =
+        daily.get(
+            LocalDate.parse("2026-11-17"), LocalDate.parse("2026-11-19"), "America/Sao_Paulo");
+    assertThat(series).hasSize(3);
+    assertThat(series.get(0).counts()).isEmpty();
+    assertThat(series.get(1).counts())
+        .containsEntry("searches", 1L)
+        .containsEntry("profileViews", 1L)
+        .containsEntry("profilesApproved", 1L);
+    assertThat(series.get(2).counts()).isEmpty();
   }
 }

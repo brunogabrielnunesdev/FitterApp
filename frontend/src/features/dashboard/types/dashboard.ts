@@ -35,3 +35,6 @@ export type DashboardRange = {
   from: string
   to: string
 }
+
+export type DailyMetricKey = 'accountsRegistered' | 'accountsCompleted' | 'profilesStarted' | 'profilesSubmitted' | 'profilesApproved' | 'profilesRejected' | 'searches' | 'profileViews' | 'whatsappContacts' | 'returns' | 'modality' | 'neighborhood' | 'serviceMode'
+export type DailyMetric = { date: string; counts: Partial<Record<DailyMetricKey, number>> }
