@@ -76,3 +76,13 @@ Para encerrar apenas os serviços, preservando os dados locais:
 ```powershell
 docker compose stop
 ```
+
+## Recuperação de senha
+
+A API envia o link de recuperação pelo Resend após salvar a solicitação. Configure
+`RESEND_API_KEY`, `RESEND_FROM` e `PASSWORD_RESET_URL`. O endereço de recuperação
+deve ser uma URL HTTPS pública que abra a rota `/reset-password` do painel web;
+o endereço local padrão é `http://localhost:5173/reset-password`. O mesmo link
+funciona para contas usadas no mobile. O token expira após 30 minutos e só pode
+ser usado uma vez. Em caso de falha na entrega, a resposta permanece genérica e
+a falha é registrada nos logs da API, sem incluir e-mail ou token.
