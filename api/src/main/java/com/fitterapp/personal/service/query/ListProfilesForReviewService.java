@@ -1,6 +1,7 @@
 package com.fitterapp.personal.service.query;
 
 import com.fitterapp.personal.entity.profile.Profile;
+import com.fitterapp.personal.entity.profile.ProfileRevisionStatus;
 import com.fitterapp.personal.entity.profile.ProfileStatus;
 import com.fitterapp.personal.repository.ProfileRepository;
 import java.util.List;
@@ -15,6 +16,7 @@ public class ListProfilesForReviewService {
 
   @Transactional(readOnly = true)
   public List<Profile> listPending() {
-    return profiles.findAllByStatusOrderByUpdatedAtAsc(ProfileStatus.PENDING_REVIEW);
+    return profiles.findAllByCurrentRevisionStatusAndStatusNotOrderByUpdatedAtAsc(
+        ProfileRevisionStatus.PENDING_REVIEW, ProfileStatus.SUSPENDED);
   }
 }

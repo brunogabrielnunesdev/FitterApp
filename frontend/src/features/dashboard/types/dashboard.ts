@@ -10,13 +10,13 @@ export type FunnelMetrics = {
   accountsCompleted: number
   profilesStarted: number
   profilesSubmitted: number
-  profilesApproved: number
-  profilesRejected: number
+  profilesApproved: number | null
+  profilesRejected: number | null
 }
 
 export type EventMetrics = {
-  raw: number
-  unique: number
+  raw: number | null
+  unique: number | null
 }
 
 export type AdminDashboard = {

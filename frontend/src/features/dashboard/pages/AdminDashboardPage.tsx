@@ -12,6 +12,10 @@ type PeriodPreset = 7 | 30 | 90 | 'custom'
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo'
 const numberFormatter = new Intl.NumberFormat('pt-BR')
 
+function formatCount(value: number | null) {
+  return value === null ? "Indisponível" : numberFormatter.format(value)
+}
+
 function toDateInput(date: Date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -237,7 +241,7 @@ export function AdminDashboardPage() {
                   <article className="relative overflow-hidden rounded-[24px] border border-[#292929] bg-[#111] p-5" key={metric.label}>
                     <span className="text-[10px] font-bold tracking-[.12em] text-[#555]">ETAPA {String(index + 1).padStart(2, '0')}</span>
                     <p className={`mt-7 font-['Manrope'] text-4xl font-extrabold ${metric.accent}`}>
-                      {numberFormatter.format(metric.value)}
+                      {formatCount(metric.value)}
                     </p>
                     <h3 className="mt-2 text-sm font-bold text-[#aaa]">{metric.label}</h3>
                   </article>
@@ -252,10 +256,10 @@ export function AdminDashboardPage() {
                 {eventMetrics.map((event, index) => (
                   <article className={`rounded-[26px] border p-6 ${index === 2 ? 'border-[#c7ff3d]/30 bg-[#c7ff3d] text-[#080808]' : 'border-[#292929] bg-[#111]'}`} key={event.label}>
                     <p className={`text-xs font-bold tracking-[.12em] ${index === 2 ? 'opacity-60' : 'text-[#7657ff]'}`}>{event.label.toUpperCase()}</p>
-                    <p className="mt-7 font-['Manrope'] text-5xl font-extrabold tracking-[-.04em]">{numberFormatter.format(event.metrics.unique)}</p>
+                    <p className="mt-7 font-['Manrope'] text-5xl font-extrabold tracking-[-.04em]">{formatCount(event.metrics.unique)}</p>
                     <p className={`mt-2 text-sm ${index === 2 ? 'opacity-70' : 'text-[#aaa]'}`}>{event.description} · únicos</p>
                     <div className={`mt-5 border-t pt-4 text-xs ${index === 2 ? 'border-black/15 opacity-60' : 'border-[#292929] text-[#666]'}`}>
-                      {numberFormatter.format(event.metrics.raw)} eventos totais registrados
+                      {formatCount(event.metrics.raw)} eventos totais registrados
                     </div>
                   </article>
                 ))}
@@ -273,7 +277,7 @@ export function AdminDashboardPage() {
               </article>
               <article className="rounded-[26px] border border-[#292929] bg-[#111] p-6">
                 <p className="text-xs font-bold tracking-[.13em] text-[#777]">LEITURA DOS DADOS</p>
-                <p className="mt-4 text-sm leading-6 text-[#aaa]">Contagens únicas removem repetições conforme a regra de deduplicação da API. Contagens totais representam todos os eventos aceitos no período.</p>
+                <p className="mt-4 text-sm leading-6 text-[#aaa]">Algumas métricas ainda não são registradas com os dados necessários e aparecem como indisponíveis. Contas concluídas representam contas com e-mail confirmado; perfis enviados contam perfis distintos com alguma revisão enviada no período.</p>
               </article>
             </section>
           </>

@@ -1,7 +1,7 @@
 export type PendingProfile = {
   profileId: string
   fullName: string
-  profileStatus: 'PENDING_REVIEW'
+  profileStatus: 'PENDING_REVIEW' | 'PUBLISHED'
   revisionStatus: 'PENDING_REVIEW'
   rejectionReason: string | null
   published: boolean

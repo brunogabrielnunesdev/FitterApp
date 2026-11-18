@@ -171,6 +171,14 @@ public class Profile {
     updatedAt = suspendedAt;
   }
 
+  public void reactivate(ProfileStatus previousStatus, OffsetDateTime reactivatedAt) {
+    if (previousStatus != ProfileStatus.APPROVED && previousStatus != ProfileStatus.PUBLISHED) {
+      throw new IllegalArgumentException("Invalid status for reactivation");
+    }
+    status = previousStatus;
+    updatedAt = reactivatedAt;
+  }
+
   public boolean isPublished() {
     return publishedRevision != null;
   }
