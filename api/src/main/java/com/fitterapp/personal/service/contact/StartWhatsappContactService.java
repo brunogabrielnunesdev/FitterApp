@@ -3,6 +3,8 @@ package com.fitterapp.personal.service.contact;
 import com.fitterapp.analytics.service.MarketplaceMetricsService;
 import com.fitterapp.personal.exception.PublicProfileNotFoundException;
 import com.fitterapp.personal.repository.ProfileRepository;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,12 @@ public class StartWhatsappContactService {
         command.idempotencyKey(),
         profile.getId());
     String phoneNumber = profile.getPublishedRevision().getWhatsapp().replaceAll("\\D", "");
-    return new StartWhatsappContactResult("https://wa.me/" + phoneNumber);
+    String message =
+        "Olá! Encontrei seu perfil no FitterApp e gostaria de saber mais sobre seus treinos.";
+    return new StartWhatsappContactResult(
+        "https://wa.me/"
+            + phoneNumber
+            + "?text="
+            + URLEncoder.encode(message, StandardCharsets.UTF_8));
   }
 }

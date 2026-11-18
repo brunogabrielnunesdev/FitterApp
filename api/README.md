@@ -125,3 +125,10 @@ rotina de backup, grave as cópias fora da VPS e teste a restauração dos dois
 conjuntos. As imagens antigas não são apagadas automaticamente, pois podem
 continuar referenciadas por outras revisões. Configure permissões restritas
 no diretório e nas cópias, já que ele contém documentos privados.
+
+## Conta autenticada
+
+`GET /api/v1/me` retorna os dados básicos e as roles da conta autenticada.
+`PUT /api/v1/me` atualiza `fullName` e `phoneNumber` (no formato internacional,
+por exemplo `+5544999999999`). A conta é identificada pelo JWT. O e-mail não
+é alterado por essa rota, pois sua mudança exige confirmação própria.

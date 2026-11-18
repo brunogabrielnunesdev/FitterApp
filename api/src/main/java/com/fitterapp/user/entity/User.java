@@ -63,6 +63,12 @@ public class User {
     return user;
   }
 
+  public void updateBasicDetails(String fullName, String phoneNumber, OffsetDateTime updatedAt) {
+    this.fullName = fullName;
+    this.phoneNumber = phoneNumber;
+    this.updatedAt = updatedAt;
+  }
+
   public void confirmEmail(OffsetDateTime confirmedAt) {
     emailVerifiedAt = confirmedAt;
     status = UserStatus.ACTIVE;

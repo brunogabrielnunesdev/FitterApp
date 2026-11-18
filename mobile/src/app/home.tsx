@@ -34,6 +34,7 @@ export default function AuthenticatedHomeScreen() {
           onPress={() => router.push('/personal-profile')}
           variant="secondary"
         />
+        <PrimaryButton label="Meus dados" onPress={() => router.push('/account')} variant="secondary" />
         <PrimaryButton label="Sair da conta" onPress={handleLogout} variant="secondary" />
       </View>
     </SafeAreaView>
