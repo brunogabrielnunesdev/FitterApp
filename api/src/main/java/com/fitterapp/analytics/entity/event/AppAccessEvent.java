@@ -12,15 +12,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "app_access_events")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AppAccessEvent {
 
   @Id @UuidGenerator private UUID id;
@@ -39,22 +42,4 @@ public class AppAccessEvent {
 
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
-
-  public static AppAccessEvent opened(User user, EventSource source, OffsetDateTime occurredAt) {
-    return record(user, AppAccessEventType.OPENED, source, occurredAt);
-  }
-
-  public static AppAccessEvent returned(User user, EventSource source, OffsetDateTime occurredAt) {
-    return record(user, AppAccessEventType.RETURNED, source, occurredAt);
-  }
-
-  private static AppAccessEvent record(
-      User user, AppAccessEventType eventType, EventSource source, OffsetDateTime occurredAt) {
-    AppAccessEvent event = new AppAccessEvent();
-    event.user = user;
-    event.eventType = eventType;
-    event.source = source;
-    event.occurredAt = occurredAt;
-    return event;
-  }
 }

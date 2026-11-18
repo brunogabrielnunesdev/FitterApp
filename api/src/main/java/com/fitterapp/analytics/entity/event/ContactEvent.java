@@ -14,15 +14,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "contact_events")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContactEvent {
 
   @Id @UuidGenerator private UUID id;
@@ -48,32 +51,4 @@ public class ContactEvent {
 
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
-
-  public static ContactEvent whatsappToPersonal(
-      User user, Profile personal, EventSource source, String city, OffsetDateTime occurredAt) {
-    ContactEvent event = base(user, source, city, occurredAt);
-    event.personalProfile = personal;
-    return event;
-  }
-
-  public static ContactEvent whatsappToAcademy(
-      User user,
-      AcademyProfile academy,
-      EventSource source,
-      String city,
-      OffsetDateTime occurredAt) {
-    ContactEvent event = base(user, source, city, occurredAt);
-    event.academyProfile = academy;
-    return event;
-  }
-
-  private static ContactEvent base(
-      User user, EventSource source, String city, OffsetDateTime occurredAt) {
-    ContactEvent event = new ContactEvent();
-    event.user = user;
-    event.source = source;
-    event.city = city;
-    event.occurredAt = occurredAt;
-    return event;
-  }
 }

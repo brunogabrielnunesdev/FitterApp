@@ -13,9 +13,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -23,7 +24,9 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "search_events")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SearchEvent {
 
   @Id @UuidGenerator private UUID id;
@@ -48,21 +51,4 @@ public class SearchEvent {
 
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
-
-  public static SearchEvent record(
-      User user,
-      EventSource source,
-      String searchTerm,
-      JsonNode filters,
-      int resultCount,
-      OffsetDateTime occurredAt) {
-    SearchEvent event = new SearchEvent();
-    event.user = user;
-    event.source = source;
-    event.searchTerm = searchTerm;
-    event.filters = filters;
-    event.resultCount = resultCount;
-    event.occurredAt = occurredAt;
-    return event;
-  }
 }

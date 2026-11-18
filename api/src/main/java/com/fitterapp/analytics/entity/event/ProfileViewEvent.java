@@ -14,15 +14,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "profile_view_events")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProfileViewEvent {
 
   @Id @UuidGenerator private UUID id;
@@ -48,32 +51,4 @@ public class ProfileViewEvent {
 
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private OffsetDateTime occurredAt;
-
-  public static ProfileViewEvent personalView(
-      User viewer, Profile personal, EventSource source, String city, OffsetDateTime occurredAt) {
-    ProfileViewEvent event = base(viewer, source, city, occurredAt);
-    event.personalProfile = personal;
-    return event;
-  }
-
-  public static ProfileViewEvent academyView(
-      User viewer,
-      AcademyProfile academy,
-      EventSource source,
-      String city,
-      OffsetDateTime occurredAt) {
-    ProfileViewEvent event = base(viewer, source, city, occurredAt);
-    event.academyProfile = academy;
-    return event;
-  }
-
-  private static ProfileViewEvent base(
-      User viewer, EventSource source, String city, OffsetDateTime occurredAt) {
-    ProfileViewEvent event = new ProfileViewEvent();
-    event.viewer = viewer;
-    event.source = source;
-    event.city = city;
-    event.occurredAt = occurredAt;
-    return event;
-  }
 }

@@ -3,6 +3,11 @@ package com.fitterapp;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fitterapp.analytics.domain.AdminAuditLogActions;
+import com.fitterapp.analytics.domain.AppAccessEventActions;
+import com.fitterapp.analytics.domain.ContactEventActions;
+import com.fitterapp.analytics.domain.ProfileViewEventActions;
+import com.fitterapp.analytics.domain.SearchEventActions;
 import com.fitterapp.analytics.entity.audit.AdminAuditLog;
 import com.fitterapp.analytics.entity.audit.AuditTargetType;
 import com.fitterapp.analytics.entity.event.AppAccessEvent;
@@ -40,7 +45,7 @@ class OperationsAndMetricsPersistenceTests {
     UUID targetId = UUID.randomUUID();
 
     AdminAuditLog log =
-        AdminAuditLog.record(
+        AdminAuditLogActions.record(
             admin,
             "ACCOUNT_BLOCKED",
             AuditTargetType.USER,
@@ -72,7 +77,7 @@ class OperationsAndMetricsPersistenceTests {
     Profile personal = personal(student, "analytics-personal", occurredAt);
 
     SearchEvent search =
-        SearchEvent.record(
+        SearchEventActions.record(
             student,
             EventSource.MOBILE_APP,
             "musculacao",
@@ -80,10 +85,10 @@ class OperationsAndMetricsPersistenceTests {
             8,
             occurredAt);
     ProfileViewEvent view =
-        ProfileViewEvent.personalView(
+        ProfileViewEventActions.personalView(
             student, personal, EventSource.MOBILE_APP, "Umuarama", occurredAt.plusMinutes(1));
     ContactEvent contact =
-        ContactEvent.whatsappToPersonal(
+        ContactEventActions.whatsappToPersonal(
             student, personal, EventSource.MOBILE_APP, "Umuarama", occurredAt.plusMinutes(2));
     entityManager.persist(search);
     entityManager.persist(view);
@@ -114,9 +119,10 @@ class OperationsAndMetricsPersistenceTests {
             occurredAt);
     Profile personal = personal(owner, "anonymous-contact", occurredAt);
 
-    AppAccessEvent access = AppAccessEvent.returned(null, EventSource.PUBLIC_WEB, occurredAt);
+    AppAccessEvent access =
+        AppAccessEventActions.returned(null, EventSource.PUBLIC_WEB, occurredAt);
     ContactEvent contact =
-        ContactEvent.whatsappToPersonal(
+        ContactEventActions.whatsappToPersonal(
             null, personal, EventSource.PUBLIC_WEB, "Maringa", occurredAt);
     entityManager.persist(access);
     entityManager.persist(contact);

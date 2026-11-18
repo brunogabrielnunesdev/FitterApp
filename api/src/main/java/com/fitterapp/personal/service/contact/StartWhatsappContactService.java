@@ -1,6 +1,6 @@
 package com.fitterapp.personal.service.contact;
 
-import com.fitterapp.analytics.entity.event.ContactEvent;
+import com.fitterapp.analytics.domain.ContactEventActions;
 import com.fitterapp.analytics.entity.event.EventSource;
 import com.fitterapp.analytics.repository.ContactEventRepository;
 import com.fitterapp.personal.exception.PublicProfileNotFoundException;
@@ -32,7 +32,7 @@ public class StartWhatsappContactService {
     OffsetDateTime now = OffsetDateTime.now(clock);
 
     contactEvents.save(
-        ContactEvent.whatsappToPersonal(viewer, profile, EventSource.MOBILE_APP, null, now));
+        ContactEventActions.whatsappToPersonal(viewer, profile, EventSource.MOBILE_APP, null, now));
 
     String phoneNumber = profile.getPublishedRevision().getWhatsapp().replaceAll("\\D", "");
     return new StartWhatsappContactResult("https://wa.me/" + phoneNumber);

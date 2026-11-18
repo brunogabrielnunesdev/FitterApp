@@ -14,9 +14,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -24,7 +25,9 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "admin_audit_logs")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AdminAuditLog {
 
   @Id @UuidGenerator private UUID id;
@@ -60,27 +63,4 @@ public class AdminAuditLog {
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private OffsetDateTime createdAt;
-
-  public static AdminAuditLog record(
-      User actor,
-      String action,
-      AuditTargetType targetType,
-      UUID targetId,
-      String reason,
-      Report report,
-      JsonNode previousState,
-      JsonNode newState,
-      OffsetDateTime createdAt) {
-    AdminAuditLog log = new AdminAuditLog();
-    log.actor = actor;
-    log.action = action;
-    log.targetType = targetType;
-    log.targetId = targetId;
-    log.reason = reason;
-    log.report = report;
-    log.previousState = previousState;
-    log.newState = newState;
-    log.createdAt = createdAt;
-    return log;
-  }
 }
